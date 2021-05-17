@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+option csharp_namespace = "DeafTelephone";
+
+package logi;
+
+// The greeting service definition.
+service Logger {
+  // Sends a greeting
+  rpc SayHello (HelloRequest) returns (HelloReply);
+  rpc Log(LogRequest) returns (LogResponse);
+  rpc LogException(LogExceptionRequest) returns (LogResponse);
+}
+
+// ping-request
+message HelloRequest {
+  string name = 1;
+}
+
+// pong-response
+message HelloReply {
+  string message = 1;
+}
+
+// Log request DTO
+message LogRequest {
+	string message = 1;
+	LogLevel level = 2;
+	map<string,string> parameters = 3;
+}
+
+// Log response DTO
+message LogResponse {
+	bool isSuccess = 1;
+	string error = 2;
+}
+
+// Exception log request DTO
+message LogExceptionRequest {
+	string message = 1;
+	string exceptionTitle = 2;
+	string stackTrace = 3;
+	map<string,string> parameters = 4;
+}
+
+// log level enum type
+enum LogLevel {
+	Error = 0;
+    Warning = 1;
+    Information = 2;
+    Debug = 3;
+    Verbose = 4;
+}
