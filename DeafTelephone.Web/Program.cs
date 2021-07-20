@@ -23,7 +23,7 @@ namespace DeafTelephone
                         var configs = options.ApplicationServices.GetRequiredService<IConfiguration>();
 
                         // enable gRpc access
-                        options.ListenLocalhost(configs.GetValue<int>("DeafSetts:GrpdPort"), o => o.Protocols = HttpProtocols.Http2);
+                        options.ListenLocalhost(configs.GetValue<int>("DeafSetts:GrpcPort"), o => o.Protocols = HttpProtocols.Http1AndHttp2);
 
                         // enable signalR access
                         options.ListenLocalhost(configs.GetValue<int>("DeafSetts:SignalrPort"), o => o.Protocols = HttpProtocols.Http1AndHttp2);

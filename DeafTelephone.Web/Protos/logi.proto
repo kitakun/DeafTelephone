@@ -4,22 +4,32 @@ option csharp_namespace = "DeafTelephone";
 
 package logi;
 
-// The greeting service definition.
+// deaf logger contract
 service Logger {
-  // Sends a greeting
-  rpc SayHello (HelloRequest) returns (HelloReply);
+  // test command
+  rpc Ping (PingRequest) returns (PongReply);
+
+  // log command
   rpc Log(LogRequest) returns (LogResponse);
   rpc LogException(LogExceptionRequest) returns (LogResponse);
+
+  // group command
+  rpc BeginScope(BeginScopeRequest) returns (BeginScopeResponse);
 }
 
-// ping-request
-message HelloRequest {
-  string name = 1;
+// ping-pong-request
+message PingRequest {
+}
+message PongReply {
 }
 
-// pong-response
-message HelloReply {
-  string message = 1;
+// log level enum type
+enum LogLevel {
+	Error = 0;
+    Warning = 1;
+    Information = 2;
+    Debug = 3;
+    Verbose = 4;
 }
 
 // Log request DTO
@@ -27,6 +37,7 @@ message LogRequest {
 	string message = 1;
 	LogLevel level = 2;
 	map<string,string> parameters = 3;
+	bytes ownerScopeId = 4;
 }
 
 // Log response DTO
@@ -41,13 +52,14 @@ message LogExceptionRequest {
 	string exceptionTitle = 2;
 	string stackTrace = 3;
 	map<string,string> parameters = 4;
+	bytes ownerScopeId = 5;
 }
 
-// log level enum type
-enum LogLevel {
-	Error = 0;
-    Warning = 1;
-    Information = 2;
-    Debug = 3;
-    Verbose = 4;
+// BeginScope commands
+message BeginScopeRequest {
+	bytes ownerScopeId = 1;
+}
+message BeginScopeResponse {
+	bytes scopeId = 1;
+	string error = 2;
 }
