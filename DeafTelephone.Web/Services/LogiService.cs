@@ -4,12 +4,12 @@ namespace DeafTelephone
     using System.Threading.Tasks;
 
     using Grpc.Core;
-    using Google.Protobuf;
     using Microsoft.Extensions.Logging;
     using MediatR;
 
     using DeafTelephone.Controllers.SendLog;
-    using DeafTelephone.Web.Infrastracture;
+    using DeafTelephone.Web.Extensions;
+    using DeafTelephone.Controllers.CreateLogScope;
 
     public class LogiService : Logger.LoggerBase
     {
@@ -37,7 +37,7 @@ namespace DeafTelephone
         {
             try
             {
-                _logger.LogInformation($"Recieved msg={request.Message} for scope={request.OwnerScopeId.ToGuid()}");
+                _logger.LogInformation($"Recieved msg={request.Message} for scope={request.OwnerScopeId}");
 
                 await _mediator.Send(new SendLogQuery(new Models.LogModel(request)));
 
@@ -48,7 +48,7 @@ namespace DeafTelephone
             }
             catch (Exception es)
             {
-                _logger.LogError($"Recieved msg={request.Message} for scope={request.OwnerScopeId.ToGuid()} but got error={es.Message} stack={es.StackTrace}");
+                _logger.LogError($"Recieved msg={request.Message} for scope={request.OwnerScopeId} but got error={es.Message} stack={es.StackTrace}");
 
                 return new LogResponse
                 {
@@ -62,7 +62,7 @@ namespace DeafTelephone
         {
             try
             {
-                _logger.LogInformation($"Recieved msg={request.Message} for scope={request.OwnerScopeId.ToGuid()}");
+                _logger.LogInformation($"Recieved msg={request.Message} for scope={request.OwnerScopeId}");
 
                 await _mediator.Send(new SendLogQuery(new Models.LogModel(request)));
 
@@ -73,7 +73,7 @@ namespace DeafTelephone
             }
             catch (Exception es)
             {
-                _logger.LogError($"Recieved msg={request.Message} for scope={request.OwnerScopeId.ToGuid()} but got error={es.Message} stack={es.StackTrace}");
+                _logger.LogError($"Recieved msg={request.Message} for scope={request.OwnerScopeId} but got error={es.Message} stack={es.StackTrace}");
 
                 return new LogResponse
                 {
@@ -85,16 +85,28 @@ namespace DeafTelephone
 
         // scope
 
-        public override Task<BeginScopeResponse> BeginScope(BeginScopeRequest request, ServerCallContext context)
+        public override async Task<BeginScopeResponse> BeginScope(BeginScopeRequest request, ServerCallContext context)
         {
-            var scopeId = Guid.NewGuid();
-            
-
-
-            return Task.FromResult(new BeginScopeResponse()
+            try
             {
-                ScopeId = ByteString.CopyFrom(scopeId.ToByteArray())
-            });
+                _logger.LogInformation($"Recieved {nameof(BeginScope)} for scope={request.OwnerScopeId}");
+
+                var createdScope = await _mediator.Send(new CreateLogScopeQuery(request));
+
+                return new BeginScopeResponse
+                {
+                    ScopeId = createdScope.Id
+                };
+            }
+            catch (Exception es)
+            {
+                _logger.LogError($"Recieved {nameof(BeginScope)} for scope={request.OwnerScopeId} but got error={es.Message} stack={es.StackTrace}");
+
+                return new BeginScopeResponse
+                {
+                    Error = es.Message
+                };
+            }
         }
     }
 }

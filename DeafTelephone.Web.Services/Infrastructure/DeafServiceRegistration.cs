@@ -13,6 +13,7 @@
         public static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
             services.AddScoped<ILogsStoreService, LogsStoreService>();
+            services.AddScoped<IProgramService, ProgramService>();
 
             services.AddDbContext<LogDbContext>(options =>
                 options.UseNpgsql(configuration.GetConnectionString(nameof(LogDbContext))));

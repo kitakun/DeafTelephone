@@ -1,4 +1,4 @@
-﻿namespace DeafTelephone.Web.Infrastracture
+﻿namespace DeafTelephone.Web.Extensions
 {
     using System;
 

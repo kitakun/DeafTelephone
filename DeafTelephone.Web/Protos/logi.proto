@@ -37,7 +37,8 @@ message LogRequest {
 	string message = 1;
 	LogLevel level = 2;
 	map<string,string> parameters = 3;
-	bytes ownerScopeId = 4;
+	sint64 ownerScopeId = 4;
+	sint64 rootScopeId = 5;
 }
 
 // Log response DTO
@@ -52,14 +53,15 @@ message LogExceptionRequest {
 	string exceptionTitle = 2;
 	string stackTrace = 3;
 	map<string,string> parameters = 4;
-	bytes ownerScopeId = 5;
+	sint64 ownerScopeId = 5;
 }
 
 // BeginScope commands
 message BeginScopeRequest {
-	bytes ownerScopeId = 1;
+	sint64 ownerScopeId = 1;
+	sint64 rootScopeId = 2;
 }
 message BeginScopeResponse {
-	bytes scopeId = 1;
+	sint64 scopeId = 1;
 	string error = 2;
 }

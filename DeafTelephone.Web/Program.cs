@@ -1,5 +1,7 @@
 namespace DeafTelephone
 {
+    using DeafTelephone.Web.Extensions;
+
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -12,6 +14,7 @@ namespace DeafTelephone
         public static void Main(string[] args) =>
             CreateHostBuilder(args)
                 .Build()
+                .MigrateDbOnStartup()
                 .Run();
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>

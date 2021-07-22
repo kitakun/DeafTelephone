@@ -7,5 +7,7 @@
     public interface ILogsStoreService
     {
         Task<LogRecord> InsertAsync(LogRecord newRecord);
+
+        ValueTask<LogScopeRecord> CreateScope(long? rootScopeId = null, long? ownerScopeId = null);
     }
 }
