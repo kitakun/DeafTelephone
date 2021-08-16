@@ -1,0 +1,59 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "DeafTelephone.ForClient";
+
+package logiClient;
+
+import "google/protobuf/timestamp.proto";
+
+// deaf logger client contract
+service LoggerClient {
+  // test command
+  rpc Ping (PingRequest) returns (PongReply);
+
+  // log command
+  rpc Fetch(FetchLogRequest) returns (FetchLogResponse);
+}
+
+// ping-pong-request
+message PingRequest { }
+message PongReply { }
+
+// log level enum type
+enum LogLevel {
+	Error = 0;
+    Warning = 1;
+    Information = 2;
+    Debug = 3;
+    Verbose = 4;
+}
+
+message LogScope {
+	sint64 scopeId = 1;
+	sint64 ownerScopeId = 2;
+	sint64 rootScopeId = 3;
+	google.protobuf.Timestamp createdAt = 4;
+}
+
+message LogMessage {
+	string message = 1;
+	string exceptionTitle = 2;
+	string stackTrace = 3;
+	map<string,string> parameters = 4;
+	sint64 ownerScopeId = 5;
+	LogLevel level = 6;
+	google.protobuf.Timestamp createdAt = 7;
+	sint64 logId = 8;
+}
+
+// Log request DTO
+message FetchLogRequest {
+	int32 from = 1;
+}
+
+message FetchLogResponse {
+	bool isSuccess = 1;
+	string error = 2;
+	repeated LogScope scopes = 3;
+	repeated LogMessage logs = 4;
+}

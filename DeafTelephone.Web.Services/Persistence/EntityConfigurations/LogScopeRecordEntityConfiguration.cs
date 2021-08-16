@@ -15,13 +15,9 @@
 
             builder.Property(x => x.CreatedAt).IsRequired();
 
-            builder.HasOne(x => x.RootScope)
-                .WithMany(x => x.InnerScopesCollection)
-                .HasForeignKey(x => x.RootScopeId);
+            builder.Property(x => x.RootScopeId);
 
-            builder.HasOne(x => x.OwnerScope)
-                .WithMany(x => x.ChildScopeCollection)
-                .HasForeignKey(x => x.OwnerScopeId);
+            builder.Property(x => x.OwnerScopeId);
         }
     }
 }

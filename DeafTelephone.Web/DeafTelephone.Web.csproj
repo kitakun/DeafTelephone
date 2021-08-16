@@ -5,7 +5,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Protos\logi_client.proto" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Protobuf Include="Protos\logi.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\logi_client.proto" GrpcServices="Server" />
   </ItemGroup>
 
   <ItemGroup>

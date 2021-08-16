@@ -36,6 +36,8 @@
                 Message = request.Request.Message,
                 StackTrace = request.Request.StackTrace,
                 ErrorTitle = request.Request.ErrorTitle,
+                OwnerScopeId = request.Request.OwnerScopeId,
+                RootScopeId = request.Request.RootScopeId,
             };
 
             var hubNotifyTask = _hubAccess.Clients.All.SendAsync(BROADCAST_LOG_MESSAGE_NAME, request.Request, cancellationToken);

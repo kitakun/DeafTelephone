@@ -7,8 +7,8 @@ namespace DeafTelephone
     using Microsoft.Extensions.Logging;
     using MediatR;
 
+    using DeafTelephone.Server;
     using DeafTelephone.Controllers.SendLog;
-    using DeafTelephone.Web.Extensions;
     using DeafTelephone.Controllers.CreateLogScope;
 
     public class LogiService : Logger.LoggerBase
@@ -107,6 +107,13 @@ namespace DeafTelephone
                     Error = es.Message
                 };
             }
+        }
+
+        // bulk
+
+        public override Task<BulkRespons> Bulk(BulkRequest request, ServerCallContext context)
+        {
+            return base.Bulk(request, context);
         }
     }
 }

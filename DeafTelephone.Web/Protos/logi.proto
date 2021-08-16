@@ -1,8 +1,10 @@
 syntax = "proto3";
 
-option csharp_namespace = "DeafTelephone";
+option csharp_namespace = "DeafTelephone.Server";
 
 package logi;
+
+import "google/protobuf/timestamp.proto";
 
 // deaf logger contract
 service Logger {
@@ -15,13 +17,14 @@ service Logger {
 
   // group command
   rpc BeginScope(BeginScopeRequest) returns (BeginScopeResponse);
+
+  // bulk
+  rpc Bulk(BulkRequest) returns (BulkRespons);
 }
 
 // ping-pong-request
-message PingRequest {
-}
-message PongReply {
-}
+message PingRequest { }
+message PongReply { }
 
 // log level enum type
 enum LogLevel {
@@ -54,6 +57,7 @@ message LogExceptionRequest {
 	string stackTrace = 3;
 	map<string,string> parameters = 4;
 	sint64 ownerScopeId = 5;
+	sint64 rootScopeId = 6;
 }
 
 // BeginScope commands
@@ -64,4 +68,28 @@ message BeginScopeRequest {
 message BeginScopeResponse {
 	sint64 scopeId = 1;
 	string error = 2;
+}
+
+// bulk stuff
+message BulkMessage {
+	sint64 scopeOwnerId = 1;
+	string logMessage = 2;
+	LogLevel level = 3;
+
+	string exceptionMessage = 4;
+	string exceptionStackTrace = 5;
+
+	sint64 rootScopeId = 6;
+
+	google.protobuf.Timestamp createdAt = 7;
+}
+
+message BulkRequest {
+	repeated BulkMessage messages = 1;
+	string cacheKey = 2;
+}
+message BulkRespons {
+	bool isSuccess = 1;
+	string error = 2;
+	string cacheKey = 3;
 }

@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace DeafTelephone.Web.Services.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class InitialMigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -21,18 +21,6 @@ namespace DeafTelephone.Web.Services.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_LogScopes", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_LogScopes_LogScopes_OwnerScopeId",
-                        column: x => x.OwnerScopeId,
-                        principalTable: "LogScopes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_LogScopes_LogScopes_RootScopeId",
-                        column: x => x.RootScopeId,
-                        principalTable: "LogScopes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -64,16 +52,6 @@ namespace DeafTelephone.Web.Services.Migrations
                 name: "IX_Logs_OwnerScopeId",
                 table: "Logs",
                 column: "OwnerScopeId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_LogScopes_OwnerScopeId",
-                table: "LogScopes",
-                column: "OwnerScopeId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_LogScopes_RootScopeId",
-                table: "LogScopes",
-                column: "RootScopeId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

@@ -2,6 +2,7 @@
 {
     using System;
 
+    using DeafTelephone.Server;
     using DeafTelephone.Web.Core.Domain;
 
     using MediatR;

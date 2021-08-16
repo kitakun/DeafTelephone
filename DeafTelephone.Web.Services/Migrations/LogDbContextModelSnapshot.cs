@@ -76,10 +76,6 @@ namespace DeafTelephone.Web.Services.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OwnerScopeId");
-
-                    b.HasIndex("RootScopeId");
-
                     b.ToTable("LogScopes");
                 });
 
@@ -94,26 +90,7 @@ namespace DeafTelephone.Web.Services.Migrations
 
             modelBuilder.Entity("DeafTelephone.Web.Core.Domain.LogScopeRecord", b =>
                 {
-                    b.HasOne("DeafTelephone.Web.Core.Domain.LogScopeRecord", "OwnerScope")
-                        .WithMany("ChildScopeCollection")
-                        .HasForeignKey("OwnerScopeId");
-
-                    b.HasOne("DeafTelephone.Web.Core.Domain.LogScopeRecord", "RootScope")
-                        .WithMany("InnerScopesCollection")
-                        .HasForeignKey("RootScopeId");
-
-                    b.Navigation("OwnerScope");
-
-                    b.Navigation("RootScope");
-                });
-
-            modelBuilder.Entity("DeafTelephone.Web.Core.Domain.LogScopeRecord", b =>
-                {
-                    b.Navigation("ChildScopeCollection");
-
                     b.Navigation("InnerLogsCollection");
-
-                    b.Navigation("InnerScopesCollection");
                 });
 #pragma warning restore 612, 618
         }

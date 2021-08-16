@@ -14,6 +14,7 @@
     using DeafTelephone.Web.Infrastracture;
     using DeafTelephone.Web.Hub;
     using DeafTelephone.Web.Services.Infrastructure;
+    using DeafTelephone.Web.Services;
 
     public class Startup
     {
@@ -60,7 +61,8 @@
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapGrpcService<LogiService>().EnableGrpcWeb();
-                
+                endpoints.MapGrpcService<LogiClientService>().EnableGrpcWeb();
+
                 DeafHub.UseEndpoints(endpoints);
 
                 endpoints.MapGet("/", async context =>

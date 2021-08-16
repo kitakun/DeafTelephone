@@ -10,8 +10,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DeafTelephone.Web.Services.Migrations
 {
     [DbContext(typeof(LogDbContext))]
-    [Migration("20210722085211_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20210813084430_InitialMigration")]
+    partial class InitialMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -78,10 +78,6 @@ namespace DeafTelephone.Web.Services.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OwnerScopeId");
-
-                    b.HasIndex("RootScopeId");
-
                     b.ToTable("LogScopes");
                 });
 
@@ -96,26 +92,7 @@ namespace DeafTelephone.Web.Services.Migrations
 
             modelBuilder.Entity("DeafTelephone.Web.Core.Domain.LogScopeRecord", b =>
                 {
-                    b.HasOne("DeafTelephone.Web.Core.Domain.LogScopeRecord", "OwnerScope")
-                        .WithMany("ChildScopeCollection")
-                        .HasForeignKey("OwnerScopeId");
-
-                    b.HasOne("DeafTelephone.Web.Core.Domain.LogScopeRecord", "RootScope")
-                        .WithMany("InnerScopesCollection")
-                        .HasForeignKey("RootScopeId");
-
-                    b.Navigation("OwnerScope");
-
-                    b.Navigation("RootScope");
-                });
-
-            modelBuilder.Entity("DeafTelephone.Web.Core.Domain.LogScopeRecord", b =>
-                {
-                    b.Navigation("ChildScopeCollection");
-
                     b.Navigation("InnerLogsCollection");
-
-                    b.Navigation("InnerScopesCollection");
                 });
 #pragma warning restore 612, 618
         }

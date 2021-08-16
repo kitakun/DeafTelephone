@@ -1,5 +1,7 @@
 ﻿namespace DeafTelephone.Models
 {
+    using DeafTelephone.Server;
+
     using System.Collections.Generic;
 
     public class LogModel
@@ -10,11 +12,17 @@
         public LogLevel Level { get; set; }
         public IDictionary<string, string> Parameters { get; set; }
 
+        public long RootScopeId { get; set; }
+        public long OwnerScopeId { get; set; }
+
         public LogModel(LogRequest logRequest)
         {
             Message = logRequest.Message;
             Level = logRequest.Level;
             Parameters = logRequest.Parameters;
+
+            RootScopeId = logRequest.RootScopeId;
+            OwnerScopeId = logRequest.OwnerScopeId;
         }
 
         public LogModel(LogExceptionRequest exceptionLog)
@@ -24,6 +32,9 @@
             StackTrace = exceptionLog.StackTrace;
             Level = LogLevel.Error;
             Parameters = exceptionLog.Parameters;
+
+            RootScopeId = exceptionLog.RootScopeId;
+            OwnerScopeId = exceptionLog.OwnerScopeId;
         }
     }
 }
