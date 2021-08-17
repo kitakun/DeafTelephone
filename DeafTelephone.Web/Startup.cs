@@ -28,7 +28,11 @@
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddGrpc(o => o.EnableDetailedErrors = true);
+            services.AddGrpc(o =>
+            {
+                o.Interceptors.Add<WhitelistInterceptor>();
+                o.EnableDetailedErrors = true;
+            });
 
             services.AddCors(o => o.AddPolicy(DeafConstants.CorsPolicyName, builder =>
             {

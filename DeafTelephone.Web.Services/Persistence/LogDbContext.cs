@@ -11,6 +11,8 @@
         public DbSet<LogRecord> Logs { get; set; }
         public DbSet<LogScopeRecord> LogScopes { get; set; }
 
+        public DbSet<SettingRecord> Settigns { get; set; }
+
         public LogDbContext()
         {
 

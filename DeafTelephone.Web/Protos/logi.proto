@@ -99,6 +99,7 @@ message BulkMessage {
 message BulkRequest {
 	repeated BulkMessage messages = 1;
 	string cacheKey = 2;
+	map<string,string> parameters = 3;
 }
 message BulkRespons {
 	bool isSuccess = 1;

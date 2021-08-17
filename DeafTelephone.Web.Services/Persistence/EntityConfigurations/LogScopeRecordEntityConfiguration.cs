@@ -1,11 +1,9 @@
 ﻿namespace DeafTelephone.Web.Services.Persistence.EntityConfigurations
 {
-    using System;
+    using DeafTelephone.Web.Core.Domain;
 
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
-    using DeafTelephone.Web.Core.Domain;
 
     public class LogScopeRecordEntityConfiguration : IEntityTypeConfiguration<LogScopeRecord>
     {
