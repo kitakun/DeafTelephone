@@ -49,6 +49,9 @@ message LogMessage {
 // Log request DTO
 message FetchLogRequest {
 	int32 from = 1;
+	string query = 2;
+	google.protobuf.Timestamp fromDate = 3;
+	google.protobuf.Timestamp toDate = 4;
 }
 
 message FetchLogResponse {

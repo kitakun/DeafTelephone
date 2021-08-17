@@ -11,6 +11,7 @@
 
         ValueTask<LogScopeRecord> CreateScope(long? rootScopeId = null, long? ownerScopeId = null);
 
-        Task<(List<LogScopeRecord>, List<LogRecord>)> Fetch();
+        Task<(List<LogScopeRecord>, List<LogRecord>)> Fetch(int from);
+        Task<(List<LogScopeRecord>, List<LogRecord>)> Fetch(int from, string query);
     }
 }

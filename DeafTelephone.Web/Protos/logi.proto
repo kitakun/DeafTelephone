@@ -20,6 +20,9 @@ service Logger {
 
   // bulk
   rpc Bulk(BulkRequest) returns (BulkRespons);
+
+  // utils
+  rpc IncomplitedRequest(IncomplitedScopeReqest) returns (IncomplitedScopeResponse);
 }
 
 // ping-pong-request
@@ -71,6 +74,14 @@ message BeginScopeResponse {
 }
 
 // bulk stuff
+enum BulkOperationType {
+	CreateInitialScope = 0;
+    CreateScope = 1;
+    LogMessage = 2;
+    LogException = 3;
+	FinalRequest = 4;
+}
+
 message BulkMessage {
 	sint64 scopeOwnerId = 1;
 	string logMessage = 2;
@@ -82,6 +93,7 @@ message BulkMessage {
 	sint64 rootScopeId = 6;
 
 	google.protobuf.Timestamp createdAt = 7;
+	BulkOperationType operationType = 8;
 }
 
 message BulkRequest {
@@ -92,4 +104,14 @@ message BulkRespons {
 	bool isSuccess = 1;
 	string error = 2;
 	string cacheKey = 3;
+}
+
+// mark skope as incomplited
+message IncomplitedScopeReqest {
+	sint64 scopeOwnerId = 1;
+	string cacheKey = 2;
+	string message = 3;
+}
+message IncomplitedScopeResponse {
+
 }

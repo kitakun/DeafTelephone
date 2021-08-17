@@ -14,6 +14,7 @@
     internal class LogsStoreService : ILogsStoreService
     {
         private readonly LogDbContext _dbContext;
+        private const int TAKE_EVERY_ROOT_SCOPES = 20;
 
         public LogsStoreService(LogDbContext dbContext)
         {
@@ -36,10 +37,76 @@
             return addedEntity.Entity;
         }
 
-        public async Task<(List<LogScopeRecord>, List<LogRecord>)> Fetch()
+        public async Task<(List<LogScopeRecord>, List<LogRecord>)> Fetch(int from)
         {
-            var scopes = await _dbContext.LogScopes.Take(50).ToListAsync();
-            return (scopes, await _dbContext.Logs.Take(50).ToListAsync());
+            var scopes = await _dbContext
+                .LogScopes
+                .AsNoTracking()
+                .Take(TAKE_EVERY_ROOT_SCOPES)
+                .Where(w => !w.RootScopeId.HasValue)
+                .Skip(from)
+                .ToListAsync();
+
+            var rootScopeIds = scopes
+                .Select(s => s.Id)
+                .ToList();
+            
+            var childScopes = await _dbContext
+                .LogScopes
+                .AsNoTracking()
+                .Where(w => w.RootScopeId.HasValue && rootScopeIds.Contains(w.RootScopeId.Value))
+                .ToListAsync();
+
+            // add child scopes to list
+            scopes.AddRange(childScopes);
+
+            var logMessages = await _dbContext
+                .Logs
+                .AsNoTracking()
+                .Where(w => w.RootScopeId.HasValue && rootScopeIds.Contains(w.RootScopeId.Value))
+                .ToListAsync();
+
+            return (scopes, logMessages);
+        }
+
+        public async Task<(List<LogScopeRecord>, List<LogRecord>)> Fetch(int from, string query)
+        {
+            var logsByQueryMessages = await _dbContext
+                .Logs
+                .AsNoTracking()
+                .Where(w => w.RootScopeId.HasValue && (w.Message.Contains(query) || w.ErrorTitle.Contains(query)))
+                .ToListAsync();
+
+            var rootScopeIdsByQuery = logsByQueryMessages
+                .Where(s => s.RootScopeId.HasValue)
+                .Select(s => s.RootScopeId.Value)
+                .Distinct()
+                .ToList();
+
+            var scopes = await _dbContext
+                .LogScopes
+                .AsNoTracking()
+                .Take(TAKE_EVERY_ROOT_SCOPES)
+                .Where(w => rootScopeIdsByQuery.Contains(w.Id))
+                .Skip(from)
+                .ToListAsync();
+
+            var childScopes = await _dbContext
+                .LogScopes
+                .AsNoTracking()
+                .Where(w => w.RootScopeId.HasValue && rootScopeIdsByQuery.Contains(w.RootScopeId.Value))
+                .ToListAsync();
+
+            // add child scopes to list
+            scopes.AddRange(childScopes);
+
+            var logMessages = await _dbContext
+                .Logs
+                .AsNoTracking()
+                .Where(w => w.RootScopeId.HasValue && rootScopeIdsByQuery.Contains(w.RootScopeId.Value))
+                .ToListAsync();
+
+            return (scopes, logMessages);
         }
 
         public async Task<LogRecord> InsertAsync(LogRecord newRecord)

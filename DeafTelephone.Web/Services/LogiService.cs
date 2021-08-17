@@ -10,6 +10,8 @@ namespace DeafTelephone
     using DeafTelephone.Server;
     using DeafTelephone.Controllers.SendLog;
     using DeafTelephone.Controllers.CreateLogScope;
+    using DeafTelephone.Web.Controllers.BulkLogOperation;
+    using DeafTelephone.Web.Controllers.IncomplitedScope;
 
     public class LogiService : Logger.LoggerBase
     {
@@ -111,9 +113,48 @@ namespace DeafTelephone
 
         // bulk
 
-        public override Task<BulkRespons> Bulk(BulkRequest request, ServerCallContext context)
+        public override async Task<BulkRespons> Bulk(BulkRequest request, ServerCallContext context)
         {
-            return base.Bulk(request, context);
+            try
+            {
+                _logger.LogInformation($"Recieved {nameof(Bulk)} with messages count={request.Messages.Count}");
+
+                var createdScope = await _mediator.Send(new BulkLogOperationQuery(request));
+
+                return new BulkRespons
+                {
+                    IsSuccess = true,
+                    CacheKey = createdScope.CacheKey
+                };
+            }
+            catch (Exception es)
+            {
+                _logger.LogError($"Recieved {nameof(Bulk)} with messages count={request.Messages.Count} but got error={es.Message} stack={es.StackTrace}");
+
+                return new BulkRespons
+                {
+                    Error = es.Message,
+                    IsSuccess = false
+                };
+            }
+        }
+
+        // utils
+
+        public override async Task<IncomplitedScopeResponse> IncomplitedRequest(IncomplitedScopeReqest request, ServerCallContext context)
+        {
+            try
+            {
+                _logger.LogInformation($"Recieved {nameof(IncomplitedRequest)} for Key={request.CacheKey}");
+
+                await _mediator.Send(new IncomplitedScopeQuery(request.CacheKey));
+            }
+            catch (Exception es)
+            {
+                _logger.LogError($"Recieved {nameof(IncomplitedScopeResponse)} for Key={request.CacheKey} but got error={es.Message} stack={es.StackTrace}");
+            }
+
+            return new IncomplitedScopeResponse();
         }
     }
 }

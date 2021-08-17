@@ -1,5 +1,6 @@
 ﻿namespace DeafTelephone.Hubs
 {
+    using System;
     using System.Threading.Tasks;
 
     using Microsoft.AspNetCore.Authorization;
@@ -10,16 +11,9 @@
     {
         internal const string HUB_URL = "/logHub";
 
-        private const string CLIENT_MESSAGE_RECIEVE_NAME = "OnReceiveLog";
-
-        public override Task OnConnectedAsync()
-        {
-            return base.OnConnectedAsync();
-        }
-
-        public Task Hi(string msg)
-        {
-            return Task.CompletedTask;
-        }
+        //public Task Hi(string msg)
+        //{
+        //    return Task.CompletedTask;
+        //}
     }
 }

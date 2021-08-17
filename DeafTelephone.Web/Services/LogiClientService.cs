@@ -28,7 +28,9 @@
 
         public override async Task<FetchLogResponse> Fetch(FetchLogRequest request, ServerCallContext context)
         {
-            var (scopes, logs) = await _logStoreService.Fetch();
+            var (scopes, logs) = string.IsNullOrEmpty(request.Query)
+                ? await _logStoreService.Fetch(request.From)
+                : await _logStoreService.Fetch(request.From, request.Query);
 
             var response = new FetchLogResponse()
             {

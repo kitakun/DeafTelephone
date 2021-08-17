@@ -40,10 +40,9 @@
                 RootScopeId = request.Request.RootScopeId,
             };
 
-            var hubNotifyTask = _hubAccess.Clients.All.SendAsync(BROADCAST_LOG_MESSAGE_NAME, request.Request, cancellationToken);
-            var storeLogTask = _logStoreService.InsertAsync(newRcord);
+            await _logStoreService.InsertAsync(newRcord);
 
-            await Task.WhenAll(hubNotifyTask, storeLogTask);
+            await _hubAccess.Clients.All.SendAsync(BROADCAST_LOG_MESSAGE_NAME, newRcord, cancellationToken);
 
             return Unit.Value;
         }

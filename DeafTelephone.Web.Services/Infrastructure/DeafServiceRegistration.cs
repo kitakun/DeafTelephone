@@ -5,6 +5,7 @@
     using DeafTelephone.Web.Services.Services;
 
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
 
@@ -12,6 +13,7 @@
     {
         public static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
+            services.AddSingleton<IMemoryCache, MemoryCache>();
             services.AddScoped<ILogsStoreService, LogsStoreService>();
             services.AddScoped<IProgramService, ProgramService>();
 
