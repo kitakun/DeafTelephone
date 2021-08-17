@@ -15,6 +15,7 @@
         {
             services.AddSingleton<IMemoryCache, MemoryCache>();
             services.AddScoped<ILogsStoreService, LogsStoreService>();
+            services.AddScoped<ILogCleanerService, LogCleanerService>();
             services.AddScoped<IProgramService, ProgramService>();
 
             services.AddDbContext<LogDbContext>(options =>

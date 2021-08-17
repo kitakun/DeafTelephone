@@ -15,6 +15,7 @@
     using DeafTelephone.Web.Hub;
     using DeafTelephone.Web.Services.Infrastructure;
     using DeafTelephone.Web.Services;
+    using DeafTelephone.Web.Jobs;
 
     public class Startup
     {
@@ -40,9 +41,13 @@
 
             DeafServiceRegistration.ConfigureServices(services, Configuration);
 
+            services.AddScoped<IScopedJob, DeleteOldLogsJob>();
+
             DeafHub.ConfigureServices(services);
 
             services.AddMediatR(Assembly.GetExecutingAssembly());
+
+            services.AddHostedService<ScopedJobsLauncher>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

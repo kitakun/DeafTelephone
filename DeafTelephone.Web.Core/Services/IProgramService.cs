@@ -2,6 +2,9 @@
 {
     public interface IProgramService
     {
+        /// <summary>
+        /// Update database
+        /// </summary>
         void ApplyMigration();
     }
 }
