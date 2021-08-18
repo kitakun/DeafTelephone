@@ -32,6 +32,8 @@ namespace DeafTelephone
 
         public override Task<PongReply> Ping(PingRequest request, ServerCallContext context)
         {
+            _logger.LogInformation($"Pong");
+
             return Task.FromResult(new PongReply());
         }
 

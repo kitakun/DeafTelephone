@@ -38,6 +38,7 @@
             {
                 builder.AllowAnyHeader()
                        .AllowAnyMethod()
+                       .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding")
                        // enable signalR cors
                        .SetIsOriginAllowed((host) => true)
                        .AllowCredentials();

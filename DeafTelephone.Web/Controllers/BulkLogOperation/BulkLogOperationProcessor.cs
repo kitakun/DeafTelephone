@@ -98,8 +98,8 @@
                         };
 
                         await _logStoreService.InsertAsync(newRcord);
-
-                        await _hubAccess.Clients.All.SendAsync(SendLogProcessor.BROADCAST_LOG_MESSAGE_NAME, newRcord, cancellationToken);
+                        
+                        // await _hubAccess.Clients.All.SendAsync(SendLogProcessor.BROADCAST_LOG_MESSAGE_NAME, newRcord, cancellationToken);
 
                         break;
 
