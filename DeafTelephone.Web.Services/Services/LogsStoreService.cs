@@ -106,9 +106,9 @@
             var scopes = await _dbContext
                 .LogScopes
                 .AsNoTracking()
-                .Take(TAKE_EVERY_ROOT_SCOPES)
                 .Where(w => rootScopeIdsByQuery.Contains(w.Id))
                 .Skip(from)
+                .Take(TAKE_EVERY_ROOT_SCOPES)
                 .ToListAsync();
 
             var childScopes = await _dbContext

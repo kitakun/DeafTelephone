@@ -1,6 +1,7 @@
 ﻿namespace DeafTelephone.Web.Services.Services
 {
     using System;
+    using System.Data;
     using System.Linq;
     using System.Threading.Tasks;
 
@@ -52,6 +53,28 @@
 
                 _logger.LogInformation($"Done with success");
             }
+        }
+
+        public async Task<string> GetDBSize()
+        {
+            var dbConnection = _dbContext.Database.GetDbConnection();
+            using var command = dbConnection.CreateCommand();
+            {
+                command.CommandText = "select pg_size_pretty(pg_database_size('deaflogs'));";
+                command.CommandType = CommandType.Text;
+
+                await _dbContext.Database.OpenConnectionAsync();
+
+                using (var result = await command.ExecuteReaderAsync())
+                {
+                    while (result.Read())
+                    {
+                        var response = result.GetString(0);
+                        return response;
+                    }
+                }
+            }
+            return "?";
         }
     }
 }

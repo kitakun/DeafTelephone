@@ -11,6 +11,7 @@
     using DeafTelephone.Hubs;
     using DeafTelephone.Web.Core.Domain;
     using DeafTelephone.Web.Core.Services;
+    using DeafTelephone.Web.Core.Extensions;
 
     public class SendLogProcessor : IRequestHandler<SendLogQuery>
     {
@@ -33,9 +34,9 @@
             {
                 CreatedAt = DateTime.Now,
                 LogLevel = (LogLevelEnum)(int)request.Request.Level,
-                Message = request.Request.Message,
-                StackTrace = request.Request.StackTrace,
-                ErrorTitle = request.Request.ErrorTitle,
+                Message = request.Request.Message.Truncate(255),
+                StackTrace = request.Request.StackTrace.Truncate(1024),
+                ErrorTitle = request.Request.ErrorTitle.Truncate(255),
                 OwnerScopeId = request.Request.OwnerScopeId,
                 RootScopeId = request.Request.RootScopeId,
             };

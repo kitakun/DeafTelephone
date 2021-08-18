@@ -25,6 +25,8 @@
             _logger.LogInformation($"Job {nameof(DeleteOldLogsJob)} step is started.");
             try
             {
+                _logger.LogInformation($"DB Size: {await _cleanerService.GetDBSize()}.");
+
                 await _cleanerService.ClearOldLogs();
             }
             catch (Exception es)

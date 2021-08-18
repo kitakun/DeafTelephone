@@ -4,6 +4,7 @@
     using DeafTelephone.Hubs;
     using DeafTelephone.Web.Controllers.BulkLogOperation;
     using DeafTelephone.Web.Core.Domain;
+    using DeafTelephone.Web.Core.Extensions;
     using DeafTelephone.Web.Core.Services;
 
     using MediatR;
@@ -54,9 +55,9 @@
                 {
                     CreatedAt = DateTime.Now,
                     LogLevel = LogLevelEnum.Error,
-                    Message = IncomplitedMessage,
+                    Message = IncomplitedMessage.Truncate(255),
                     StackTrace = string.Empty,
-                    ErrorTitle = IncomplitedMessage,
+                    ErrorTitle = IncomplitedMessage.Truncate(255),
                     OwnerScopeId = cacheMap.RootScopeId,
                     RootScopeId = cacheMap.RootScopeId,
                 };

@@ -3,6 +3,7 @@
     using DeafTelephone.Controllers.SendLog;
     using DeafTelephone.Hubs;
     using DeafTelephone.Web.Core.Domain;
+    using DeafTelephone.Web.Core.Extensions;
     using DeafTelephone.Web.Core.Services;
 
     using MediatR;
@@ -90,9 +91,9 @@
                         {
                             CreatedAt = DateTime.Now,
                             LogLevel = (LogLevelEnum)(int)messageToProceed.Level,
-                            Message = messageToProceed.LogMessage,
-                            StackTrace = messageToProceed.ExceptionStackTrace,
-                            ErrorTitle = messageToProceed.ExceptionMessage,
+                            Message = messageToProceed.LogMessage.Truncate(255),
+                            StackTrace = messageToProceed.ExceptionStackTrace.Truncate(1024),
+                            ErrorTitle = messageToProceed.ExceptionMessage.Truncate(255),
                             OwnerScopeId = cacheMap.ScopeIdsMap[messageToProceed.ScopeOwnerId],
                             RootScopeId = cacheMap.ScopeIdsMap[messageToProceed.RootScopeId],
                         };
