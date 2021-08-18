@@ -1,10 +1,10 @@
 ﻿namespace DeafTelephone.Web.Controllers.BulkLogOperation
 {
-    using System;
-
     using DeafTelephone.Server;
 
     using MediatR;
+
+    using System;
 
     public class BulkLogOperationQuery : IRequest<BulkLogOperationResult>
     {

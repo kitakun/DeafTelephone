@@ -1,16 +1,11 @@
 ﻿namespace DeafTelephone.Web.Services
 {
-    using System;
-    using System.Threading.Tasks;
-
-    using Grpc.Core;
-    using Microsoft.Extensions.Logging;
-    using MediatR;
-
-    using DeafTelephone.Controllers.SendLog;
-    using DeafTelephone.Controllers.CreateLogScope;
     using DeafTelephone.ForClient;
     using DeafTelephone.Web.Core.Services;
+
+    using Grpc.Core;
+
+    using System.Threading.Tasks;
 
     public class LogiClientService : LoggerClient.LoggerClientBase
     {
@@ -51,7 +46,7 @@
                 });
             }
 
-            foreach(var scope in scopes)
+            foreach (var scope in scopes)
             {
                 response.Scopes.Add(new LogScope()
                 {

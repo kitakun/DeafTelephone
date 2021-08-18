@@ -1,10 +1,5 @@
 ﻿namespace DeafTelephone.Web.Controllers.BulkLogOperation
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Threading;
-    using System.Threading.Tasks;
-
     using DeafTelephone.Controllers.SendLog;
     using DeafTelephone.Hubs;
     using DeafTelephone.Web.Core.Domain;
@@ -14,6 +9,11 @@
 
     using Microsoft.AspNetCore.SignalR;
     using Microsoft.Extensions.Caching.Memory;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     public class BulkLogOperationProcessor : IRequestHandler<BulkLogOperationQuery, BulkLogOperationResult>
     {
@@ -45,7 +45,11 @@
                 buildedCacheKey = request.Request.CacheKey;
 
                 // we should have cache for this request
-                cacheMap = _cache.Get<MapCacheItem>(buildedCacheKey);
+                if (!_cache.TryGetValue<MapCacheItem>(buildedCacheKey, out var gettedCacheMap))
+                {
+                    throw new Exception($"Can't find cacheKey={buildedCacheKey} in memory cache");
+                }
+                cacheMap = gettedCacheMap;
             }
             else
             {
@@ -65,7 +69,10 @@
                         if (cacheMap.ScopeIdsMap.Count != 0)
                             throw new Exception($"Can't create initial scope because it already should be existing!");
 
-                        var initialScope = await _logStoreService.CreateScope(null, null);
+                        var initialScope = await _logStoreService.CreateRootScope(
+                            request.Request.Parameters[nameof(LogScopeRecord.Project)],
+                            request.Request.Parameters[nameof(LogScopeRecord.Environment)]);
+
                         cacheMap.ScopeIdsMap.Add(++scopeMapVal, initialScope.Id);
                         cacheMap.RootScopeId = initialScope.Id;
                         break;

@@ -19,6 +19,7 @@ namespace DeafTelephone
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .UseSystemd()
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.ConfigureKestrel(options =>
@@ -26,11 +27,9 @@ namespace DeafTelephone
                         var configs = options.ApplicationServices.GetRequiredService<IConfiguration>();
 
                         // enable gRpc access
-                        // options.ListenLocalhost(configs.GetValue<int>("DeafSetts:GrpcPort"), o => o.Protocols = HttpProtocols.Http1AndHttp2);
                         options.ListenAnyIP(configs.GetValue<int>("DeafSetts:GrpcPort"), o => o.Protocols = HttpProtocols.Http1AndHttp2);
 
                         // enable signalR access
-                        // options.ListenLocalhost(configs.GetValue<int>("DeafSetts:SignalrPort"), o => o.Protocols = HttpProtocols.Http1AndHttp2);
                         options.ListenAnyIP(configs.GetValue<int>("DeafSetts:SignalrPort"), o => o.Protocols = HttpProtocols.Http1AndHttp2);
                     });
 

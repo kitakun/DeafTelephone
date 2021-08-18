@@ -1,17 +1,19 @@
 namespace DeafTelephone
 {
-    using System;
-    using System.Threading.Tasks;
-
-    using Grpc.Core;
-    using Microsoft.Extensions.Logging;
-    using MediatR;
-
-    using DeafTelephone.Server;
-    using DeafTelephone.Controllers.SendLog;
     using DeafTelephone.Controllers.CreateLogScope;
+    using DeafTelephone.Controllers.SendLog;
+    using DeafTelephone.Server;
     using DeafTelephone.Web.Controllers.BulkLogOperation;
     using DeafTelephone.Web.Controllers.IncomplitedScope;
+
+    using Grpc.Core;
+
+    using MediatR;
+
+    using Microsoft.Extensions.Logging;
+
+    using System;
+    using System.Threading.Tasks;
 
     public class LogiService : Logger.LoggerBase
     {

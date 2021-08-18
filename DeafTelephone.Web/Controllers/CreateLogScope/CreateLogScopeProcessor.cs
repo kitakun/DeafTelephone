@@ -1,14 +1,14 @@
 ﻿namespace DeafTelephone.Web.Controllers.CreateLogScope
 {
-    using System;
-    using System.Threading;
-    using System.Threading.Tasks;
+    using DeafTelephone.Controllers.CreateLogScope;
+    using DeafTelephone.Web.Core.Domain;
+    using DeafTelephone.Web.Core.Services;
 
     using MediatR;
 
-    using DeafTelephone.Web.Core.Domain;
-    using DeafTelephone.Web.Core.Services;
-    using DeafTelephone.Controllers.CreateLogScope;
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     public class CreateLogScopeProcessor : IRequestHandler<CreateLogScopeQuery, LogScopeRecord>
     {

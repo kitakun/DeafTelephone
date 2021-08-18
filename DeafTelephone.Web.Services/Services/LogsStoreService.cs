@@ -37,20 +37,39 @@
             return addedEntity.Entity;
         }
 
+        public async ValueTask<LogScopeRecord> CreateRootScope(string project, string environment)
+        {
+            var newScope = new LogScopeRecord()
+            {
+                CreatedAt = DateTime.Now,
+                OwnerScopeId = null,
+                RootScopeId = null,
+                Project = project,
+                Environment = environment,
+            };
+
+            var addedEntity = await _dbContext.AddAsync(newScope);
+
+            await _dbContext.SaveChangesAsync();
+
+            return addedEntity.Entity;
+        }
+
         public async Task<(List<LogScopeRecord>, List<LogRecord>)> Fetch(int from)
         {
             var scopes = await _dbContext
                 .LogScopes
                 .AsNoTracking()
-                .Take(TAKE_EVERY_ROOT_SCOPES)
+                .OrderByDescending(x => x.CreatedAt)
                 .Where(w => !w.RootScopeId.HasValue)
                 .Skip(from)
+                .Take(TAKE_EVERY_ROOT_SCOPES)
                 .ToListAsync();
 
             var rootScopeIds = scopes
                 .Select(s => s.Id)
                 .ToList();
-            
+
             var childScopes = await _dbContext
                 .LogScopes
                 .AsNoTracking()
@@ -74,6 +93,7 @@
             var logsByQueryMessages = await _dbContext
                 .Logs
                 .AsNoTracking()
+                .OrderByDescending(x => x.CreatedAt)
                 .Where(w => w.RootScopeId.HasValue && (w.Message.Contains(query) || w.ErrorTitle.Contains(query)))
                 .ToListAsync();
 

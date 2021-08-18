@@ -14,8 +14,10 @@
             builder.Property(x => x.CreatedAt).IsRequired();
 
             builder.Property(x => x.RootScopeId);
-
             builder.Property(x => x.OwnerScopeId);
+
+            builder.Property(x => x.Project).HasMaxLength(255);
+            builder.Property(x => x.Environment).HasMaxLength(64);
         }
     }
 }

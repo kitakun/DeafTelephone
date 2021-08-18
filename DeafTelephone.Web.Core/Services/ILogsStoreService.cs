@@ -20,6 +20,13 @@
         ValueTask<LogScopeRecord> CreateScope(long? rootScopeId = null, long? ownerScopeId = null);
 
         /// <summary>
+        /// Create root log scope inside <c>Project Scope</c>
+        /// </summary>
+        /// <param name="project">Project (could be application name)</param>
+        /// <param name="environment">Environment (could be test/prod/etc)</param>
+        ValueTask<LogScopeRecord> CreateRootScope(string project, string environment);
+
+        /// <summary>
         /// Load logs
         /// </summary>
         /// <param name="from"></param>

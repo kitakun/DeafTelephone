@@ -1,10 +1,5 @@
 ﻿namespace DeafTelephone.Web.Controllers.IncomplitedScope
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Threading;
-    using System.Threading.Tasks;
-
     using DeafTelephone.Controllers.SendLog;
     using DeafTelephone.Hubs;
     using DeafTelephone.Web.Controllers.BulkLogOperation;
@@ -16,6 +11,10 @@
     using Microsoft.AspNetCore.SignalR;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Logging;
+
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     using static DeafTelephone.Web.Controllers.BulkLogOperation.BulkLogOperationProcessor;
 
@@ -63,7 +62,7 @@
                 };
 
                 await _logStoreService.InsertAsync(newRcord);
-             
+
                 _cache.Remove(request.CacheKey);
 
                 await _hubAccess.Clients.All.SendAsync(SendLogProcessor.BROADCAST_LOG_MESSAGE_NAME, newRcord, cancellationToken);

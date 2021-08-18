@@ -11,6 +11,9 @@
         public long? RootScopeId { get; init; }
         public long? OwnerScopeId { get; init; }
 
+        public string Project { get; init; }
+        public string Environment { get; init; }
+
         public virtual ICollection<LogRecord> InnerLogsCollection { get; init; }
     }
 }

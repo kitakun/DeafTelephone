@@ -21,6 +21,7 @@
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Common" Version="5.0.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="5.0.8" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="5.0.1" />
   </ItemGroup>
 
   <ItemGroup>

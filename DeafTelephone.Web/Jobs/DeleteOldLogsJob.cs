@@ -1,19 +1,16 @@
 ﻿namespace DeafTelephone.Web.Jobs
 {
-    using System;
-    using System.Threading;
-    using System.Threading.Tasks;
-
     using DeafTelephone.Web.Core.Services;
 
     using Microsoft.Extensions.Logging;
 
-    public class DeleteOldLogsJob : IScopedJob, IDisposable
+    using System;
+    using System.Threading.Tasks;
+
+    public class DeleteOldLogsJob : IScopedJob
     {
         private readonly ILogger<DeleteOldLogsJob> _logger;
         private readonly ILogCleanerService _cleanerService;
-
-        private Timer _timer;
 
         public DeleteOldLogsJob(
             ILogger<DeleteOldLogsJob> logger,
@@ -34,11 +31,6 @@
             {
                 _logger.LogCritical($"Job {nameof(DeleteOldLogsJob)} Exception in job! {es.Message}", es);
             }
-        }
-
-        public void Dispose()
-        {
-            _timer?.Dispose();
         }
     }
 }
