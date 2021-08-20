@@ -12,11 +12,10 @@
     using DeafTelephone.Web.Core.Domain;
     using DeafTelephone.Web.Core.Services;
     using DeafTelephone.Web.Core.Extensions;
+    using DeafTelephone.Web.Hub.Models;
 
     public class SendLogProcessor : IRequestHandler<SendLogQuery>
     {
-        internal const string BROADCAST_LOG_MESSAGE_NAME = "BroadcastLog";
-
         private readonly IHubContext<LogHub> _hubAccess;
         private readonly ILogsStoreService _logStoreService;
 
@@ -43,7 +42,8 @@
 
             await _logStoreService.InsertAsync(newRcord);
 
-            // await _hubAccess.Clients.All.SendAsync(BROADCAST_LOG_MESSAGE_NAME, newRcord, cancellationToken);
+            await _hubAccess.Clients.All.SendAsync(
+                            NewLogInScopeEvent.BROADCAST_LOG_MESSAGE_NAME, new NewLogInScopeEvent(newRcord), cancellationToken);
 
             return Unit.Value;
         }

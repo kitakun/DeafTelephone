@@ -1,11 +1,11 @@
 ﻿namespace DeafTelephone.Web.Controllers.IncomplitedScope
 {
-    using DeafTelephone.Controllers.SendLog;
     using DeafTelephone.Hubs;
     using DeafTelephone.Web.Controllers.BulkLogOperation;
     using DeafTelephone.Web.Core.Domain;
     using DeafTelephone.Web.Core.Extensions;
     using DeafTelephone.Web.Core.Services;
+    using DeafTelephone.Web.Hub.Models;
 
     using MediatR;
 
@@ -66,7 +66,8 @@
 
                 _cache.Remove(request.CacheKey);
 
-                // await _hubAccess.Clients.All.SendAsync(SendLogProcessor.BROADCAST_LOG_MESSAGE_NAME, newRcord, cancellationToken);
+                await _hubAccess.Clients.All.SendAsync(
+                            NewLogInScopeEvent.BROADCAST_LOG_MESSAGE_NAME, new NewLogInScopeEvent(newRcord), cancellationToken);
             }
             else
             {

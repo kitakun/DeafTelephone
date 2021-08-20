@@ -16,6 +16,7 @@
     using DeafTelephone.Web.Services.Infrastructure;
     using DeafTelephone.Web.Services;
     using DeafTelephone.Web.Jobs;
+    using Microsoft.Extensions.Logging;
 
     public class Startup
     {
@@ -55,7 +56,7 @@
             services.AddHostedService<ScopedJobsLauncher>();
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger)
         {
             if (env.IsDevelopment())
             {
@@ -67,6 +68,8 @@
             // enable gRPC Cors
             app.UseCors(DeafConstants.CorsPolicyName);
             app.UseGrpcWeb();
+
+            logger.LogInformation($"Launch app with version {Assembly.GetExecutingAssembly().GetName().Version}");
 
             app.UseEndpoints(endpoints =>
             {

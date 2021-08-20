@@ -1,10 +1,10 @@
 ﻿namespace DeafTelephone.Web.Controllers.BulkLogOperation
 {
-    using DeafTelephone.Controllers.SendLog;
     using DeafTelephone.Hubs;
     using DeafTelephone.Web.Core.Domain;
     using DeafTelephone.Web.Core.Extensions;
     using DeafTelephone.Web.Core.Services;
+    using DeafTelephone.Web.Hub.Models;
 
     using MediatR;
 
@@ -76,13 +76,21 @@
 
                         cacheMap.ScopeIdsMap.Add(++scopeMapVal, initialScope.Id);
                         cacheMap.RootScopeId = initialScope.Id;
+
+                        await _hubAccess.Clients.All.SendAsync(
+                            NewScopeEvent.BROADCAST_NEW_SCOPE_MESSAGE, new NewScopeEvent(initialScope), cancellationToken);
+
                         break;
 
                     case Server.BulkOperationType.CreateScope:
                         var innerScope = await _logStoreService.CreateScope(
                             cacheMap.ScopeIdsMap[messageToProceed.RootScopeId],
                             cacheMap.ScopeIdsMap[messageToProceed.ScopeOwnerId]);
+
                         cacheMap.ScopeIdsMap.Add(++scopeMapVal, innerScope.Id);
+
+                        await _hubAccess.Clients.All.SendAsync(
+                            NewScopeEvent.BROADCAST_NEW_SCOPE_MESSAGE, new NewScopeEvent(innerScope), cancellationToken);
                         break;
 
                     case Server.BulkOperationType.LogMessage:
@@ -99,8 +107,9 @@
                         };
 
                         await _logStoreService.InsertAsync(newRcord);
-                        
-                        // await _hubAccess.Clients.All.SendAsync(SendLogProcessor.BROADCAST_LOG_MESSAGE_NAME, newRcord, cancellationToken);
+
+                        await _hubAccess.Clients.All.SendAsync(
+                            NewLogInScopeEvent.BROADCAST_LOG_MESSAGE_NAME, new NewLogInScopeEvent(newRcord), cancellationToken);
 
                         break;
 

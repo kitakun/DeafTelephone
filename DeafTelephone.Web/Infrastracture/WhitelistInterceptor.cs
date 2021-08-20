@@ -62,7 +62,7 @@
             var address = clientIP.ToString();
 
             const string ipv6Submask = "::ffff:";
-            if (address.Substring(0, ipv6Submask.Length) == ipv6Submask)
+            if (address.Length > 6 && address.Substring(0, ipv6Submask.Length) == ipv6Submask)
             {
                 address = address[ipv6Submask.Length..];
             }
