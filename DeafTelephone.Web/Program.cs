@@ -41,7 +41,7 @@ namespace DeafTelephone
                                     o.UseHttps(certName, certPass);
                                 }
                             });
-
+                        
                         // enable signalR access
                         options.ListenAnyIP(
                             configs.GetValue<int>("DeafSetts:SignalrPort"), o =>

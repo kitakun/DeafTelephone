@@ -77,7 +77,7 @@
                         cacheMap.ScopeIdsMap.Add(++scopeMapVal, initialScope.Id);
                         cacheMap.RootScopeId = initialScope.Id;
 
-                        await _hubAccess.Clients.All.SendAsync(
+                        await _hubAccess.Clients.Group(LogHub.ALL_LOGS_GROUP).SendAsync(
                             NewScopeEvent.BROADCAST_NEW_SCOPE_MESSAGE, new NewScopeEvent(initialScope), cancellationToken);
 
                         break;
@@ -89,7 +89,7 @@
 
                         cacheMap.ScopeIdsMap.Add(++scopeMapVal, innerScope.Id);
 
-                        await _hubAccess.Clients.All.SendAsync(
+                        await _hubAccess.Clients.Group(LogHub.ALL_LOGS_GROUP).SendAsync(
                             NewScopeEvent.BROADCAST_NEW_SCOPE_MESSAGE, new NewScopeEvent(innerScope), cancellationToken);
                         break;
 
@@ -108,7 +108,7 @@
 
                         await _logStoreService.InsertAsync(newRcord);
 
-                        await _hubAccess.Clients.All.SendAsync(
+                        await _hubAccess.Clients.Group(LogHub.ALL_LOGS_GROUP).SendAsync(
                             NewLogInScopeEvent.BROADCAST_LOG_MESSAGE_NAME, new NewLogInScopeEvent(newRcord), cancellationToken);
 
                         break;

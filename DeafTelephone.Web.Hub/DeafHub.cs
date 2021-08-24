@@ -5,7 +5,6 @@ namespace DeafTelephone.Web.Hub
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Http.Connections;
     using Microsoft.AspNetCore.Routing;
-
     using Microsoft.Extensions.DependencyInjection;
 
     public static class DeafHub

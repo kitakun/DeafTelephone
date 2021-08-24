@@ -42,7 +42,7 @@
 
             await _logStoreService.InsertAsync(newRcord);
 
-            await _hubAccess.Clients.All.SendAsync(
+            await _hubAccess.Clients.Group(LogHub.ALL_LOGS_GROUP).SendAsync(
                             NewLogInScopeEvent.BROADCAST_LOG_MESSAGE_NAME, new NewLogInScopeEvent(newRcord), cancellationToken);
 
             return Unit.Value;
