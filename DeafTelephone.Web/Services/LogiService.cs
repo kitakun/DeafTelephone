@@ -1,10 +1,10 @@
 namespace DeafTelephone
 {
-    using DeafTelephone.Controllers.CreateLogScope;
-    using DeafTelephone.Controllers.SendLog;
+    using DeafTelephone.Controllers.LogiServer.CreateLogScope;
+    using DeafTelephone.Controllers.LogiServer.SendLog;
     using DeafTelephone.Server;
-    using DeafTelephone.Web.Controllers.BulkLogOperation;
-    using DeafTelephone.Web.Controllers.IncomplitedScope;
+    using DeafTelephone.Web.Controllers.LogiServer.BulkLogOperation;
+    using DeafTelephone.Web.Controllers.LogiServer.IncomplitedScope;
 
     using Grpc.Core;
 
