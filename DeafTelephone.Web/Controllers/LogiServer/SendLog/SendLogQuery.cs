@@ -1,4 +1,4 @@
-﻿namespace DeafTelephone.Controllers.SendLog
+﻿namespace DeafTelephone.Controllers.LogiServer.SendLog
 {
     using System;
 

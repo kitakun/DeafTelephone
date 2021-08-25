@@ -1,7 +1,7 @@
-﻿namespace DeafTelephone.Web.Controllers.IncomplitedScope
+﻿namespace DeafTelephone.Web.Controllers.LogiServer.IncomplitedScope
 {
     using DeafTelephone.Hubs;
-    using DeafTelephone.Web.Controllers.BulkLogOperation;
+    using DeafTelephone.Web.Controllers.LogiServer.BulkLogOperation;
     using DeafTelephone.Web.Core.Domain;
     using DeafTelephone.Web.Core.Extensions;
     using DeafTelephone.Web.Core.Services;
@@ -17,7 +17,7 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    using static DeafTelephone.Web.Controllers.BulkLogOperation.BulkLogOperationProcessor;
+    using static DeafTelephone.Web.Controllers.LogiServer.BulkLogOperation.BulkLogOperationProcessor;
 
     public class IncomplitedScopeProcessor : IRequestHandler<IncomplitedScopeQuery>
     {

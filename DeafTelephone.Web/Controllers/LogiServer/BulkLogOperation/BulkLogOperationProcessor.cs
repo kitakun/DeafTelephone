@@ -1,4 +1,4 @@
-﻿namespace DeafTelephone.Web.Controllers.BulkLogOperation
+﻿namespace DeafTelephone.Web.Controllers.LogiServer.BulkLogOperation
 {
     using DeafTelephone.Hubs;
     using DeafTelephone.Web.Core.Domain;

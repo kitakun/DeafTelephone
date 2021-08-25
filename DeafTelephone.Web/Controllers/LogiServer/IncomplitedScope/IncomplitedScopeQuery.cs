@@ -1,4 +1,4 @@
-﻿namespace DeafTelephone.Web.Controllers.IncomplitedScope
+﻿namespace DeafTelephone.Web.Controllers.LogiServer.IncomplitedScope
 {
     using MediatR;
 
