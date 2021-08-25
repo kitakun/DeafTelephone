@@ -3,11 +3,11 @@
     using System.Reflection;
 
     using Microsoft.EntityFrameworkCore;
-
-    using DeafTelephone.Web.Core.Domain;
     using Microsoft.Extensions.Configuration;
 
-    internal class LogDbContext : DbContext
+    using DeafTelephone.Web.Core.Domain;
+
+    public sealed class LogDbContext : DbContext
     {
         private readonly IConfiguration _appConfigs;
 
