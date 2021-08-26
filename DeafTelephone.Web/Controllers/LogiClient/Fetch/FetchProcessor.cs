@@ -32,15 +32,15 @@
                 logPredicate = logPredicate.And(w => w.Message.Contains(request.Request.Query) || w.ErrorTitle.Contains(request.Request.Query));
             }
 
-            if(request.Request.Projects.Count > 0)
+            if (request.Request.Projects.Count > 0)
             {
-                var selectedProjectsList = request.Request.Projects.ToList();
+                var selectedProjectsList = request.Request.Projects.Select(s => s.ToLower()).ToList();
                 rootScopePredicate = rootScopePredicate.And(w => selectedProjectsList.Contains(w.Project.ToLower()));
             }
 
             if (request.Request.Enves.Count > 0)
             {
-                var selectedEnvsList = request.Request.Enves.ToList();
+                var selectedEnvsList = request.Request.Enves.Select(s => s.ToLower()).ToList();
                 rootScopePredicate = rootScopePredicate.And(w => selectedEnvsList.Contains(w.Environment.ToLower()));
             }
 

@@ -105,6 +105,11 @@
             Expression<Func<LogRecord, bool>> predicateLogQuery,
             Expression<Func<LogScopeRecord, bool>> predicateRootScopeQuery)
         {
+            if (predicateRootScopeQuery != null)
+            {
+                return await FetchFromRootScope(from, predicateLogQuery, predicateRootScopeQuery);
+            }
+
             var initialLogQuery = _dbContext
                 .Logs
                 .AsNoTracking()
@@ -125,18 +130,11 @@
                 .Distinct()
                 .ToList();
 
-            var initialRootScopeQuery = _dbContext
+            var scopes = await _dbContext
                 .LogScopes
                 .AsNoTracking()
                 .Where(w => rootScopeIdsByQuery.Contains(w.Id))
-                .AsExpandableEFCore();
-
-            if (initialRootScopeQuery != null)
-            {
-                initialRootScopeQuery = initialRootScopeQuery.Where(predicateRootScopeQuery);
-            }
-
-            var scopes = await initialRootScopeQuery
+                .AsExpandableEFCore()
                 .Skip(from)
                 .Take(TAKE_EVERY_ROOT_SCOPES)
                 .ToListAsync();
@@ -147,11 +145,75 @@
                 return (new List<LogScopeRecord>(0), new List<LogRecord>(0));
             }
 
-            if (predicateLogQuery != null || predicateRootScopeQuery != null)
+            if (predicateLogQuery != null)
             {
                 // update root scope Id because it might be changed after predicates
                 rootScopeIdsByQuery = scopes.Select(s => s.Id).Distinct().ToList();
             }
+
+            var childScopes = await _dbContext
+                .LogScopes
+                .AsNoTracking()
+                .Where(w => w.RootScopeId.HasValue && rootScopeIdsByQuery.Contains(w.RootScopeId.Value))
+                .ToListAsync();
+
+            // add child scopes to list
+            scopes.AddRange(childScopes);
+
+            var logMessages = await _dbContext
+                .Logs
+                .AsNoTracking()
+                .Where(w => w.RootScopeId.HasValue && rootScopeIdsByQuery.Contains(w.RootScopeId.Value))
+                .ToListAsync();
+
+            return (scopes, logMessages);
+        }
+
+        public async Task<(List<LogScopeRecord>, List<LogRecord>)> FetchFromRootScope(
+            int from,
+            Expression<Func<LogRecord, bool>> predicateLogQuery,
+            Expression<Func<LogScopeRecord, bool>> predicateRootScopeQuery)
+        {
+            var initialLogQuery = _dbContext
+                .LogScopes
+                .AsNoTracking()
+                .Include(x => x.InnerLogsCollection)
+                .Where(w => !w.RootScopeId.HasValue)
+                .Where(predicateRootScopeQuery)
+                .SelectMany(s => s.InnerLogsCollection)
+                .OrderByDescending(x => x.CreatedAt)
+                .AsExpandableEFCore();
+
+            if (predicateLogQuery != null)
+            {
+                initialLogQuery = initialLogQuery.Where(predicateLogQuery);
+            }
+
+            var logsByQueryMessages = await initialLogQuery.ToListAsync();
+
+            var rootScopeIdsByQuery = logsByQueryMessages
+                .Where(s => s.RootScopeId.HasValue)
+                .Select(s => s.RootScopeId.Value)
+                .Distinct()
+                .ToList();
+
+            var scopes = await _dbContext
+                .LogScopes
+                .AsNoTracking()
+                .Where(w => rootScopeIdsByQuery.Contains(w.Id))
+                .AsExpandableEFCore()
+                .Skip(from)
+                .Take(TAKE_EVERY_ROOT_SCOPES)
+                .ToListAsync();
+
+            // no results
+            if (scopes.Count == 0)
+            {
+                return (new List<LogScopeRecord>(0), new List<LogRecord>(0));
+            }
+
+            // update root scope Id because it might be changed after predicates
+            rootScopeIdsByQuery = scopes.Select(s => s.Id).Distinct().ToList();
 
             var childScopes = await _dbContext
                 .LogScopes
