@@ -1,25 +1,31 @@
-﻿using DeafTelephone.Web.Services.Persistence;
-
-using MediatR;
-
-using Microsoft.EntityFrameworkCore;
-
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace DeafTelephone.Web.Controllers.LogiClient.Hello
+﻿namespace DeafTelephone.Web.Controllers.LogiClient.Hello
 {
-    public class HelloProcessor : IRequestHandler<HelloQuery, HelloResult>
+    using DeafTelephone.ForClient;
+    using DeafTelephone.Web.Core.Services;
+    using DeafTelephone.Web.Services.Persistence;
+
+    using MediatR;
+
+    using Microsoft.EntityFrameworkCore;
+
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+
+    public class HelloProcessor : IRequestHandler<HelloQuery, HelloResponse>
     {
         private readonly LogDbContext _dbContext;
+        private readonly ILogCleanerService _logCleanService;
 
-        public HelloProcessor(LogDbContext dbContext)
+        public HelloProcessor(
+            LogDbContext dbContext,
+            ILogCleanerService logCleanService)
         {
             _dbContext = dbContext ?? throw new System.ArgumentNullException(nameof(dbContext));
+            _logCleanService = logCleanService ?? throw new System.ArgumentNullException(nameof(logCleanService));
         }
 
-        public async Task<HelloResult> Handle(HelloQuery request, CancellationToken cancellationToken)
+        public async Task<HelloResponse> Handle(HelloQuery request, CancellationToken cancellationToken)
         {
             // get all envs + projects
             var allEnvsAndProjects = await _dbContext.LogScopes
@@ -36,7 +42,25 @@ namespace DeafTelephone.Web.Controllers.LogiClient.Hello
                         k => k.Key,
                         v => v.Select(s2 => s2.Project).ToList());
 
-            return new HelloResult(map);
+            // create response model
+
+            var result = new HelloResponse()
+            {
+                DatabaseSize = await _logCleanService.GetDBSize()
+            };
+
+            result.EnvsToProjects.AddRange(map.Select(s =>
+            {
+                var mfEntry = new MapFieldStringEntry()
+                {
+                    Key = s.Key,
+                };
+                mfEntry.Value.AddRange(s.Value);
+
+                return mfEntry;
+            }));
+
+            return result;
         }
     }
 }

@@ -1,15 +1,18 @@
 ﻿namespace DeafTelephone.Web.Services.Services
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-
     using DeafTelephone.Web.Core.Domain;
     using DeafTelephone.Web.Core.Services;
     using DeafTelephone.Web.Services.Persistence;
 
+    using LinqKit;
+
     using Microsoft.EntityFrameworkCore;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Linq.Expressions;
+    using System.Threading.Tasks;
 
     internal class LogsStoreService : ILogsStoreService
     {
@@ -88,14 +91,33 @@
             return (scopes, logMessages);
         }
 
-        public async Task<(List<LogScopeRecord>, List<LogRecord>)> Fetch(int from, string query)
+        public async Task<LogRecord> InsertAsync(LogRecord newRecord)
         {
-            var logsByQueryMessages = await _dbContext
+            var addedEntity = await _dbContext.AddAsync(newRecord);
+
+            await _dbContext.SaveChangesAsync();
+
+            return addedEntity.Entity;
+        }
+
+        public async Task<(List<LogScopeRecord>, List<LogRecord>)> Fetch(
+            int from,
+            Expression<Func<LogRecord, bool>> predicateLogQuery,
+            Expression<Func<LogScopeRecord, bool>> predicateRootScopeQuery)
+        {
+            var initialLogQuery = _dbContext
                 .Logs
                 .AsNoTracking()
                 .OrderByDescending(x => x.CreatedAt)
-                .Where(w => w.RootScopeId.HasValue && (w.Message.Contains(query) || w.ErrorTitle.Contains(query)))
-                .ToListAsync();
+                .Where(w => w.RootScopeId.HasValue)
+                .AsExpandableEFCore();
+
+            if (predicateLogQuery != null)
+            {
+                initialLogQuery = initialLogQuery.Where(predicateLogQuery);
+            }
+
+            var logsByQueryMessages = await initialLogQuery.ToListAsync();
 
             var rootScopeIdsByQuery = logsByQueryMessages
                 .Where(s => s.RootScopeId.HasValue)
@@ -103,13 +125,33 @@
                 .Distinct()
                 .ToList();
 
-            var scopes = await _dbContext
+            var initialRootScopeQuery = _dbContext
                 .LogScopes
                 .AsNoTracking()
                 .Where(w => rootScopeIdsByQuery.Contains(w.Id))
+                .AsExpandableEFCore();
+
+            if (initialRootScopeQuery != null)
+            {
+                initialRootScopeQuery = initialRootScopeQuery.Where(predicateRootScopeQuery);
+            }
+
+            var scopes = await initialRootScopeQuery
                 .Skip(from)
                 .Take(TAKE_EVERY_ROOT_SCOPES)
                 .ToListAsync();
+
+            // no results
+            if (scopes.Count == 0)
+            {
+                return (new List<LogScopeRecord>(0), new List<LogRecord>(0));
+            }
+
+            if (predicateLogQuery != null || predicateRootScopeQuery != null)
+            {
+                // update root scope Id because it might be changed after predicates
+                rootScopeIdsByQuery = scopes.Select(s => s.Id).Distinct().ToList();
+            }
 
             var childScopes = await _dbContext
                 .LogScopes
@@ -127,15 +169,6 @@
                 .ToListAsync();
 
             return (scopes, logMessages);
-        }
-
-        public async Task<LogRecord> InsertAsync(LogRecord newRecord)
-        {
-            var addedEntity = await _dbContext.AddAsync(newRecord);
-
-            await _dbContext.SaveChangesAsync();
-
-            return addedEntity.Entity;
         }
     }
 }

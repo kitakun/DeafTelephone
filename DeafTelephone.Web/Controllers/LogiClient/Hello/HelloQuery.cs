@@ -4,7 +4,7 @@
 
     using MediatR;
 
-    public class HelloQuery : IRequest<HelloResult>
+    public class HelloQuery : IRequest<HelloResponse>
     {
         public HelloRequest Request { get; init;  }
 

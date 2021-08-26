@@ -1,6 +1,8 @@
 ﻿namespace DeafTelephone.Web.Core.Services
 {
+    using System;
     using System.Collections.Generic;
+    using System.Linq.Expressions;
     using System.Threading.Tasks;
 
     using DeafTelephone.Web.Core.Domain;
@@ -30,12 +32,9 @@
         /// Load logs
         /// </summary>
         /// <param name="from"></param>
-        Task<(List<LogScopeRecord>, List<LogRecord>)> Fetch(int from);
-        /// <summary>
-        /// Load logs with filters
-        /// </summary>
-        /// <param name="from">skip logs</param>
-        /// <param name="query">search for string</param>
-        Task<(List<LogScopeRecord>, List<LogRecord>)> Fetch(int from, string query);
+        Task<(List<LogScopeRecord>, List<LogRecord>)> Fetch(
+            int from,
+            Expression<Func<LogRecord, bool>> predicateLogQuery,
+            Expression<Func<LogScopeRecord, bool>> predicateRootScopeQuery);
     }
 }
