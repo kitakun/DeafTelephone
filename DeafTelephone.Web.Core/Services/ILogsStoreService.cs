@@ -12,7 +12,7 @@
         /// <summary>
         /// Save log record in to database
         /// </summary>
-        Task<LogRecord> InsertAsync(LogRecord newRecord);
+        Task<LogRecord> InsertLogRecordAsync(LogRecord newRecord);
 
         /// <summary>
         /// Create log scope in to database

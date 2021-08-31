@@ -17,11 +17,20 @@
     internal class LogsStoreService : ILogsStoreService
     {
         private readonly LogDbContext _dbContext;
-        private const int TAKE_EVERY_ROOT_SCOPES = 20;
+        private const int TAKE_EVERY_ROOT_SCOPES = 4;
 
         public LogsStoreService(LogDbContext dbContext)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+        }
+
+        public async Task<LogRecord> InsertLogRecordAsync(LogRecord newRecord)
+        {
+            var addedEntity = await _dbContext.AddAsync(newRecord);
+
+            await _dbContext.SaveChangesAsync();
+
+            return addedEntity.Entity;
         }
 
         public async ValueTask<LogScopeRecord> CreateScope(long? rootScopeId = null, long? ownerScopeId = null)
@@ -91,65 +100,56 @@
             return (scopes, logMessages);
         }
 
-        public async Task<LogRecord> InsertAsync(LogRecord newRecord)
-        {
-            var addedEntity = await _dbContext.AddAsync(newRecord);
-
-            await _dbContext.SaveChangesAsync();
-
-            return addedEntity.Entity;
-        }
-
         public async Task<(List<LogScopeRecord>, List<LogRecord>)> Fetch(
-            int from,
+            int skipScopes,
             Expression<Func<LogRecord, bool>> predicateLogQuery,
             Expression<Func<LogScopeRecord, bool>> predicateRootScopeQuery)
         {
             if (predicateRootScopeQuery != null)
             {
-                return await FetchFromRootScope(from, predicateLogQuery, predicateRootScopeQuery);
+                return await FetchByFilteredScopesAndLogs(skipScopes, predicateLogQuery, predicateRootScopeQuery);
             }
-
-            var initialLogQuery = _dbContext
-                .Logs
-                .AsNoTracking()
-                .OrderByDescending(x => x.CreatedAt)
-                .Where(w => w.RootScopeId.HasValue)
-                .AsExpandableEFCore();
 
             if (predicateLogQuery != null)
             {
-                initialLogQuery = initialLogQuery.Where(predicateLogQuery);
+                return await FetchByFilteredLogs(skipScopes, predicateLogQuery);
             }
 
-            var logsByQueryMessages = await initialLogQuery.ToListAsync();
+            return await Fetch(skipScopes);
+        }
 
-            var rootScopeIdsByQuery = logsByQueryMessages
-                .Where(s => s.RootScopeId.HasValue)
-                .Select(s => s.RootScopeId.Value)
-                .Distinct()
-                .ToList();
-
-            var scopes = await _dbContext
+        private async Task<(List<LogScopeRecord>, List<LogRecord>)> FetchByFilteredLogs(
+            int skipScopes,
+            Expression<Func<LogRecord, bool>> predicateLogQuery)
+        {
+            var filteredLogsByPredicate = await _dbContext
                 .LogScopes
                 .AsNoTracking()
-                .Where(w => rootScopeIdsByQuery.Contains(w.Id))
-                .AsExpandableEFCore()
-                .Skip(from)
+                .OrderByDescending(x => x.CreatedAt)
+                .Skip(skipScopes)
                 .Take(TAKE_EVERY_ROOT_SCOPES)
+                .Where(w => w.InnerLogsCollection.Any())
+                .SelectMany(sm => sm.InnerLogsCollection)
+                .Where(predicateLogQuery)
                 .ToListAsync();
 
             // no results
-            if (scopes.Count == 0)
+            if (filteredLogsByPredicate.Count == 0)
             {
                 return (new List<LogScopeRecord>(0), new List<LogRecord>(0));
             }
 
-            if (predicateLogQuery != null)
-            {
-                // update root scope Id because it might be changed after predicates
-                rootScopeIdsByQuery = scopes.Select(s => s.Id).Distinct().ToList();
-            }
+            var rootScopeIdsByQuery = filteredLogsByPredicate
+                .Select(s => s.RootScopeId.Value)
+                .Distinct()
+                .ToList();
+
+            var rootScopes = await _dbContext
+                .LogScopes
+                .AsNoTracking()
+                .Where(w => rootScopeIdsByQuery.Contains(w.Id))
+                .AsExpandableEFCore()
+                .ToListAsync();
 
             var childScopes = await _dbContext
                 .LogScopes
@@ -158,7 +158,7 @@
                 .ToListAsync();
 
             // add child scopes to list
-            scopes.AddRange(childScopes);
+            rootScopes.AddRange(childScopes);
 
             var logMessages = await _dbContext
                 .Logs
@@ -166,54 +166,40 @@
                 .Where(w => w.RootScopeId.HasValue && rootScopeIdsByQuery.Contains(w.RootScopeId.Value))
                 .ToListAsync();
 
-            return (scopes, logMessages);
+            return (rootScopes, logMessages);
         }
 
-        public async Task<(List<LogScopeRecord>, List<LogRecord>)> FetchFromRootScope(
-            int from,
+        private async Task<(List<LogScopeRecord>, List<LogRecord>)> FetchByFilteredScopesAndLogs(
+            int skipSkopes,
             Expression<Func<LogRecord, bool>> predicateLogQuery,
             Expression<Func<LogScopeRecord, bool>> predicateRootScopeQuery)
         {
-            var initialLogQuery = _dbContext
+            var rootLogsIdsWithFilteredQuery = _dbContext
                 .LogScopes
                 .AsNoTracking()
-                .Include(x => x.InnerLogsCollection)
-                .Where(w => !w.RootScopeId.HasValue)
-                .Where(predicateRootScopeQuery)
-                .SelectMany(s => s.InnerLogsCollection)
                 .OrderByDescending(x => x.CreatedAt)
+                .Where(predicateRootScopeQuery)
+                .Skip(skipSkopes)
+                .Where(w => w.InnerLogsCollection.Any())
                 .AsExpandableEFCore();
 
-            if (predicateLogQuery != null)
-            {
-                initialLogQuery = initialLogQuery.Where(predicateLogQuery);
-            }
-
-            var logsByQueryMessages = await initialLogQuery.ToListAsync();
-
-            var rootScopeIdsByQuery = logsByQueryMessages
-                .Where(s => s.RootScopeId.HasValue)
-                .Select(s => s.RootScopeId.Value)
+            var rootScopeIdsByQuery = await rootLogsIdsWithFilteredQuery
+                .Select(s => s.Id)
                 .Distinct()
-                .ToList();
-
-            var scopes = await _dbContext
-                .LogScopes
-                .AsNoTracking()
-                .Where(w => rootScopeIdsByQuery.Contains(w.Id))
-                .AsExpandableEFCore()
-                .Skip(from)
-                .Take(TAKE_EVERY_ROOT_SCOPES)
                 .ToListAsync();
 
             // no results
-            if (scopes.Count == 0)
+            if (rootScopeIdsByQuery.Count == 0)
             {
                 return (new List<LogScopeRecord>(0), new List<LogRecord>(0));
             }
 
-            // update root scope Id because it might be changed after predicates
-            rootScopeIdsByQuery = scopes.Select(s => s.Id).Distinct().ToList();
+            var rootScopes = await _dbContext
+                .LogScopes
+                .AsNoTracking()
+                .Where(w => rootScopeIdsByQuery.Contains(w.Id))
+                .AsExpandableEFCore()
+                .ToListAsync();
 
             var childScopes = await _dbContext
                 .LogScopes
@@ -222,15 +208,16 @@
                 .ToListAsync();
 
             // add child scopes to list
-            scopes.AddRange(childScopes);
+            rootScopes.AddRange(childScopes);
 
             var logMessages = await _dbContext
                 .Logs
                 .AsNoTracking()
                 .Where(w => w.RootScopeId.HasValue && rootScopeIdsByQuery.Contains(w.RootScopeId.Value))
+                .Where(predicateLogQuery)
                 .ToListAsync();
 
-            return (scopes, logMessages);
+            return (rootScopes, logMessages);
         }
     }
 }

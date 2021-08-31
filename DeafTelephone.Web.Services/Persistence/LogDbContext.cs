@@ -30,7 +30,10 @@
 
 #if DEBUG
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-            => optionsBuilder.UseNpgsql("User ID=migrator;Password=migrator;Host=localhost;Port=5432;Database=deaflogs;Pooling=true;");
+        {
+            optionsBuilder.UseNpgsql("User ID=migrator;Password=migrator;Host=localhost;Port=5432;Database=deaflogs;Pooling=true;");
+            optionsBuilder.LogTo(System.Console.WriteLine);
+        }
 #elif RELEASE
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             => optionsBuilder.UseNpgsql(_appConfigs.GetConnectionString("LogDbContext"));

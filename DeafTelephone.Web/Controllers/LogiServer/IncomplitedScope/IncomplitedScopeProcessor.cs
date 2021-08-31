@@ -62,7 +62,7 @@
                     RootScopeId = cacheMap.RootScopeId,
                 };
 
-                await _logStoreService.InsertAsync(newRcord);
+                await _logStoreService.InsertLogRecordAsync(newRcord);
 
                 _cache.Remove(request.CacheKey);
 
