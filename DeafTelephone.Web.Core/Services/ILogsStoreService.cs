@@ -1,11 +1,11 @@
 ﻿namespace DeafTelephone.Web.Core.Services
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq.Expressions;
-    using System.Threading.Tasks;
-
     using DeafTelephone.Web.Core.Domain;
+    using DeafTelephone.Web.Core.Models;
+
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     public interface ILogsStoreService
     {
@@ -31,10 +31,6 @@
         /// <summary>
         /// Load logs
         /// </summary>
-        /// <param name="from"></param>
-        Task<(List<LogScopeRecord>, List<LogRecord>)> Fetch(
-            int from,
-            Expression<Func<LogRecord, bool>> predicateLogQuery,
-            Expression<Func<LogScopeRecord, bool>> predicateRootScopeQuery);
+        Task<(List<LogScopeRecord>, List<LogRecord>)> Fetch(LogFetchFilters filters, CancellationToken token);
     }
 }

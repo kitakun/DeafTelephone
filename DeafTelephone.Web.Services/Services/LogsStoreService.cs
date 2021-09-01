@@ -1,6 +1,7 @@
 ﻿namespace DeafTelephone.Web.Services.Services
 {
     using DeafTelephone.Web.Core.Domain;
+    using DeafTelephone.Web.Core.Models;
     using DeafTelephone.Web.Core.Services;
     using DeafTelephone.Web.Services.Persistence;
 
@@ -11,13 +12,13 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Linq.Expressions;
+    using System.Threading;
     using System.Threading.Tasks;
 
     internal class LogsStoreService : ILogsStoreService
     {
         private readonly LogDbContext _dbContext;
-        private const int TAKE_EVERY_ROOT_SCOPES = 4;
+        private const int TAKE_EVERY_ROOT_SCOPES = 20;
 
         public LogsStoreService(LogDbContext dbContext)
         {
@@ -67,7 +68,20 @@
             return addedEntity.Entity;
         }
 
-        public async Task<(List<LogScopeRecord>, List<LogRecord>)> Fetch(int from)
+        public async Task<(List<LogScopeRecord>, List<LogRecord>)> Fetch(LogFetchFilters filters, CancellationToken token)
+        {
+            if (filters.PredicateRootScopeQuery != null || filters.PredicateLogQuery != null)
+            {
+                return await FilteredFetch(filters, token);
+            }
+
+            return await Fetch(
+                filters.SkipScopes ?? 0,
+                filters.TakeScopes ?? TAKE_EVERY_ROOT_SCOPES,
+                token);
+        }
+
+        private async Task<(List<LogScopeRecord>, List<LogRecord>)> Fetch(int from, int take, CancellationToken token)
         {
             var scopes = await _dbContext
                 .LogScopes
@@ -75,7 +89,7 @@
                 .OrderByDescending(x => x.CreatedAt)
                 .Where(w => !w.RootScopeId.HasValue)
                 .Skip(from)
-                .Take(TAKE_EVERY_ROOT_SCOPES)
+                .Take(take)
                 .ToListAsync();
 
             var rootScopeIds = scopes
@@ -100,122 +114,64 @@
             return (scopes, logMessages);
         }
 
-        public async Task<(List<LogScopeRecord>, List<LogRecord>)> Fetch(
-            int skipScopes,
-            Expression<Func<LogRecord, bool>> predicateLogQuery,
-            Expression<Func<LogScopeRecord, bool>> predicateRootScopeQuery)
+        private async Task<(List<LogScopeRecord>, List<LogRecord>)> FilteredFetch(LogFetchFilters filters, CancellationToken token)
         {
-            if (predicateRootScopeQuery != null)
-            {
-                return await FetchByFilteredScopesAndLogs(skipScopes, predicateLogQuery, predicateRootScopeQuery);
-            }
-
-            if (predicateLogQuery != null)
-            {
-                return await FetchByFilteredLogs(skipScopes, predicateLogQuery);
-            }
-
-            return await Fetch(skipScopes);
-        }
-
-        private async Task<(List<LogScopeRecord>, List<LogRecord>)> FetchByFilteredLogs(
-            int skipScopes,
-            Expression<Func<LogRecord, bool>> predicateLogQuery)
-        {
-            var filteredLogsByPredicate = await _dbContext
-                .LogScopes
-                .AsNoTracking()
-                .OrderByDescending(x => x.CreatedAt)
-                .Skip(skipScopes)
-                .Take(TAKE_EVERY_ROOT_SCOPES)
-                .Where(w => w.InnerLogsCollection.Any())
-                .SelectMany(sm => sm.InnerLogsCollection)
-                .Where(predicateLogQuery)
-                .ToListAsync();
-
-            // no results
-            if (filteredLogsByPredicate.Count == 0)
-            {
-                return (new List<LogScopeRecord>(0), new List<LogRecord>(0));
-            }
-
-            var rootScopeIdsByQuery = filteredLogsByPredicate
-                .Select(s => s.RootScopeId.Value)
-                .Distinct()
-                .ToList();
-
-            var rootScopes = await _dbContext
-                .LogScopes
-                .AsNoTracking()
-                .Where(w => rootScopeIdsByQuery.Contains(w.Id))
-                .AsExpandableEFCore()
-                .ToListAsync();
-
-            var childScopes = await _dbContext
-                .LogScopes
-                .AsNoTracking()
-                .Where(w => w.RootScopeId.HasValue && rootScopeIdsByQuery.Contains(w.RootScopeId.Value))
-                .ToListAsync();
-
-            // add child scopes to list
-            rootScopes.AddRange(childScopes);
-
-            var logMessages = await _dbContext
+            // build query for log fetching
+            var filteredLogMessagesQuery = _dbContext
                 .Logs
                 .AsNoTracking()
-                .Where(w => w.RootScopeId.HasValue && rootScopeIdsByQuery.Contains(w.RootScopeId.Value))
-                .ToListAsync();
+                .Where(w => w.RootScopeId.HasValue);
 
-            return (rootScopes, logMessages);
-        }
+            if(filters.PredicateLogQuery != null)
+            {
+                filteredLogMessagesQuery = filteredLogMessagesQuery.Where(filters.PredicateLogQuery);
+            }
 
-        private async Task<(List<LogScopeRecord>, List<LogRecord>)> FetchByFilteredScopesAndLogs(
-            int skipSkopes,
-            Expression<Func<LogRecord, bool>> predicateLogQuery,
-            Expression<Func<LogScopeRecord, bool>> predicateRootScopeQuery)
-        {
-            var rootLogsIdsWithFilteredQuery = _dbContext
+            var filteredLogMessages = filteredLogMessagesQuery.Select(s => s.RootScopeId.Value);
+
+            // build query for root scope fetching
+
+            var rootScopeIdsWithFilteredQuery = _dbContext
                 .LogScopes
                 .AsNoTracking()
                 .OrderByDescending(x => x.CreatedAt)
-                .Where(predicateRootScopeQuery)
-                .Skip(skipSkopes)
-                .Where(w => w.InnerLogsCollection.Any())
                 .AsExpandableEFCore();
+            if(filters.PredicateRootScopeQuery != null)
+            {
+                rootScopeIdsWithFilteredQuery = rootScopeIdsWithFilteredQuery.Where(filters.PredicateRootScopeQuery);
+            }
 
-            var rootScopeIdsByQuery = await rootLogsIdsWithFilteredQuery
-                .Select(s => s.Id)
-                .Distinct()
-                .ToListAsync();
+            rootScopeIdsWithFilteredQuery = rootScopeIdsWithFilteredQuery
+                .Skip(filters.SkipScopes ?? 0)
+                .Where(w => filteredLogMessages.Contains(w.Id))
+                .Take(filters.TakeScopes ?? TAKE_EVERY_ROOT_SCOPES);
+
+            var rootScopes = await rootScopeIdsWithFilteredQuery
+                .ToListAsync(token);
 
             // no results
-            if (rootScopeIdsByQuery.Count == 0)
+            if (rootScopes.Count == 0)
             {
                 return (new List<LogScopeRecord>(0), new List<LogRecord>(0));
             }
 
-            var rootScopes = await _dbContext
-                .LogScopes
-                .AsNoTracking()
-                .Where(w => rootScopeIdsByQuery.Contains(w.Id))
-                .AsExpandableEFCore()
-                .ToListAsync();
+            var rootScopeIds = rootScopes.Select(s => s.Id).ToList();
 
+            // load child scopes
             var childScopes = await _dbContext
                 .LogScopes
                 .AsNoTracking()
-                .Where(w => w.RootScopeId.HasValue && rootScopeIdsByQuery.Contains(w.RootScopeId.Value))
-                .ToListAsync();
+                .Where(w => w.RootScopeId.HasValue && rootScopeIds.Contains(w.RootScopeId.Value))
+                .ToListAsync(token);
 
-            // add child scopes to list
             rootScopes.AddRange(childScopes);
 
+            // load all logs
             var logMessages = await _dbContext
                 .Logs
                 .AsNoTracking()
-                .Where(w => w.RootScopeId.HasValue && rootScopeIdsByQuery.Contains(w.RootScopeId.Value))
-                .Where(predicateLogQuery)
-                .ToListAsync();
+                .Where(w => w.RootScopeId.HasValue && rootScopeIds.Contains(w.RootScopeId.Value))
+                .ToListAsync(token);
 
             return (rootScopes, logMessages);
         }

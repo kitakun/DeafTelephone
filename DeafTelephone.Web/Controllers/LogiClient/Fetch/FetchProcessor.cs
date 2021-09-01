@@ -2,6 +2,7 @@
 {
     using DeafTelephone.ForClient;
     using DeafTelephone.Web.Core.Domain;
+    using DeafTelephone.Web.Core.Models;
     using DeafTelephone.Web.Core.Services;
 
     using LinqKit;
@@ -44,9 +45,15 @@
                 rootScopePredicate = rootScopePredicate.And(w => selectedEnvsList.Contains(w.Environment.ToLower()));
             }
 
-            var (scopes, logs) = await _logStoreService.Fetch(request.Request.From, logPredicate, rootScopePredicate);
+            var (scopes, logs) = await _logStoreService.Fetch(new LogFetchFilters(
+                request.Request.From,
+                request.Request.Take,
+                logPredicate,
+                rootScopePredicate),
+                cancellationToken);
 
             // create response
+            cancellationToken.ThrowIfCancellationRequested();
 
             var response = new FetchLogResponse()
             {
