@@ -10,6 +10,7 @@
 
     using Microsoft.AspNetCore.SignalR;
     using Microsoft.Extensions.Caching.Memory;
+    using Microsoft.Extensions.Logging;
 
     using System;
     using System.Collections.Generic;
@@ -23,15 +24,18 @@
         private readonly IMemoryCache _cache;
         private readonly ILogsStoreService _logStoreService;
         private readonly IHubContext<LogHub> _hubAccess;
+        private readonly ILogger<BulkLogOperationProcessor> _logger;
 
         public BulkLogOperationProcessor(
             IMemoryCache cache,
             ILogsStoreService logStoreService,
-            IHubContext<LogHub> hub)
+            IHubContext<LogHub> hub,
+            ILogger<BulkLogOperationProcessor> logger)
         {
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
             _logStoreService = logStoreService ?? throw new ArgumentNullException(nameof(logStoreService));
             _hubAccess = hub ?? throw new ArgumentNullException(nameof(hub));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<BulkLogOperationResult> Handle(BulkLogOperationQuery request, CancellationToken cancellationToken)
@@ -57,7 +61,13 @@
                 // create new cache map
                 cacheMap = new MapCacheItem();
                 buildedCacheKey = string.Format(CACHE_LOCAL_SCOPE_MAP, cacheMap.CacheKey);
-                _cache.Set(buildedCacheKey, cacheMap);
+                var cacheEntry = _cache.CreateEntry(buildedCacheKey);
+                cacheEntry.SetValue(cacheMap);
+                cacheEntry
+                    .SetSlidingExpiration(TimeSpan.FromMinutes(15))
+                    .SetAbsoluteExpiration(TimeSpan.FromHours(2));
+
+                _logger.LogInformation($"[{DateTime.Now:dd.MM.yyyy HH:mm}] Start new BuldOperation Messages.Count={request.Request.Messages.Count} SetCache.Key={buildedCacheKey}");
             }
 
             var scopeMapVal = cacheMap.CalculatedIds;
@@ -115,6 +125,7 @@
 
                     case Server.BulkOperationType.FinalRequest:
                         _cache.Remove(buildedCacheKey);
+                        _logger.LogInformation($"[{DateTime.Now:dd.MM.yyyy HH:mm}] {nameof(Server.BulkOperationType)} {nameof(Server.BulkOperationType.FinalRequest)} Cache.Key={buildedCacheKey}");
                         break;
                 }
             }
