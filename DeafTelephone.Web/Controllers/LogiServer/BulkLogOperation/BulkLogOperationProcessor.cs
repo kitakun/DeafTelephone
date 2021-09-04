@@ -13,7 +13,7 @@
     using Microsoft.Extensions.Logging;
 
     using System;
-    using System.Collections.Generic;
+    using System.Collections.Concurrent;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -51,9 +51,8 @@
 
                 // we should have cache for this request
                 if (!_cache.TryGetValue<MapCacheItem>(buildedCacheKey, out var gettedCacheMap))
-                {
                     throw new Exception($"Can't find cacheKey={buildedCacheKey} in memory cache");
-                }
+
                 cacheMap = gettedCacheMap;
             }
             else
@@ -61,30 +60,39 @@
                 // create new cache map
                 cacheMap = new MapCacheItem();
                 buildedCacheKey = string.Format(CACHE_LOCAL_SCOPE_MAP, cacheMap.CacheKey);
-                var cacheEntry = _cache.CreateEntry(buildedCacheKey);
-                cacheEntry.SetValue(cacheMap);
-                cacheEntry
-                    .SetSlidingExpiration(TimeSpan.FromMinutes(15))
-                    .SetAbsoluteExpiration(TimeSpan.FromHours(2));
+                using (var cacheEntry = _cache.CreateEntry(buildedCacheKey))
+                {
+                    cacheEntry.SetValue(cacheMap);
+                    cacheEntry
+                        .SetSlidingExpiration(TimeSpan.FromMinutes(15))
+                        .SetAbsoluteExpiration(TimeSpan.FromHours(2));
+                    cacheEntry.RegisterPostEvictionCallback(OnCacheEntryChanges);
+                }
 
                 _logger.LogInformation($"[{DateTime.Now:dd.MM.yyyy HH:mm}] Start new BuldOperation Messages.Count={request.Request.Messages.Count} SetCache.Key={buildedCacheKey}");
             }
 
             var scopeMapVal = cacheMap.CalculatedIds;
+            var needToFinalize = false;
             for (var i = 0; i < request.Request.Messages.Count; i++)
             {
                 var messageToProceed = request.Request.Messages[i];
                 switch (messageToProceed.OperationType)
                 {
                     case Server.BulkOperationType.CreateInitialScope:
-                        if (cacheMap.ScopeIdsMap.Count != 0)
+                        if (!cacheMap.ScopeIdsMap.IsEmpty)
                             throw new Exception($"Can't create initial scope because it already should be existing!");
 
-                        var initialScope = await _logStoreService.CreateRootScope(
-                            request.Request.Parameters[nameof(LogScopeRecord.Project)],
-                            request.Request.Parameters[nameof(LogScopeRecord.Environment)]);
+                        var targetProject = request.Request.Parameters[nameof(LogScopeRecord.Project)];
+                        var targetEnv = request.Request.Parameters[nameof(LogScopeRecord.Environment)];
 
-                        cacheMap.ScopeIdsMap.Add(++scopeMapVal, initialScope.Id);
+                        _logger.LogInformation($"[{DateTime.Now:dd.MM.yyyy HH:mm}] {nameof(Server.BulkOperationType)} {nameof(Server.BulkOperationType.CreateInitialScope)} proj={targetProject} env={targetEnv} Cache.Key={buildedCacheKey}");
+
+                        var initialScope = await _logStoreService.CreateRootScope(targetProject, targetEnv);
+
+                        if (!cacheMap.ScopeIdsMap.TryAdd(++scopeMapVal, initialScope.Id))
+                            throw new Exception($"Failed at setting initial scope id for {buildedCacheKey}");
+
                         cacheMap.RootScopeId = initialScope.Id;
 
                         await _hubAccess.Clients.Group(LogHub.ALL_LOGS_GROUP).SendAsync(
@@ -97,7 +105,8 @@
                             cacheMap.ScopeIdsMap[messageToProceed.RootScopeId],
                             cacheMap.ScopeIdsMap[messageToProceed.ScopeOwnerId]);
 
-                        cacheMap.ScopeIdsMap.Add(++scopeMapVal, innerScope.Id);
+                        if (!cacheMap.ScopeIdsMap.TryAdd(++scopeMapVal, innerScope.Id))
+                            throw new Exception($"Failed at setting scope id ({scopeMapVal}) for {buildedCacheKey}");
 
                         await _hubAccess.Clients.Group(LogHub.ALL_LOGS_GROUP).SendAsync(
                             NewScopeEvent.BROADCAST_NEW_SCOPE_MESSAGE, new NewScopeEvent(innerScope), cancellationToken);
@@ -124,13 +133,18 @@
                         break;
 
                     case Server.BulkOperationType.FinalRequest:
-                        _cache.Remove(buildedCacheKey);
-                        _logger.LogInformation($"[{DateTime.Now:dd.MM.yyyy HH:mm}] {nameof(Server.BulkOperationType)} {nameof(Server.BulkOperationType.FinalRequest)} Cache.Key={buildedCacheKey}");
+                        needToFinalize = true;
                         break;
                 }
             }
 
             cacheMap.CalculatedIds = scopeMapVal;
+
+            if (needToFinalize)
+            {
+                _cache.Remove(buildedCacheKey);
+                _logger.LogInformation($"[{DateTime.Now:dd.MM.yyyy HH:mm}] {nameof(Server.BulkOperationType)} {nameof(Server.BulkOperationType.FinalRequest)} Cache.Key={buildedCacheKey}");
+            }
 
             return new BulkLogOperationResult()
             {
@@ -138,9 +152,19 @@
             };
         }
 
+        private void OnCacheEntryChanges(object key, object value, EvictionReason reason, object state)
+        {
+            if(reason == EvictionReason.Expired
+                || reason == EvictionReason.Removed
+                || reason == EvictionReason.TokenExpired)
+            {
+                _logger.LogInformation($"{nameof(Server.BulkOperationType)} {nameof(OnCacheEntryChanges)} key={key} reason={reason}");
+            }
+        }
+
         public class MapCacheItem
         {
-            public readonly Dictionary<long, long> ScopeIdsMap;
+            public readonly ConcurrentDictionary<long, long> ScopeIdsMap;
             public readonly string CacheKey;
             public int CalculatedIds { get; set; }
             public long RootScopeId;
@@ -149,7 +173,7 @@
             {
                 CalculatedIds = 0;
                 CacheKey = Guid.NewGuid().ToString();
-                ScopeIdsMap = new Dictionary<long, long>(4);
+                ScopeIdsMap = new ConcurrentDictionary<long, long>();
             }
         }
     }

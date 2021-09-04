@@ -56,8 +56,8 @@
                     CreatedAt = DateTime.Now,
                     LogLevel = LogLevelEnum.Error,
                     Message = IncomplitedMessage.Truncate(255),
-                    StackTrace = string.Empty,
-                    ErrorTitle = IncomplitedMessage.Truncate(255),
+                    StackTrace = string.IsNullOrEmpty(request.StackTrace) ? string.Empty : request.StackTrace.Truncate(1024),
+                    ErrorTitle = string.IsNullOrEmpty(request.Message) ? IncomplitedMessage.Truncate(255) : request.Message.Truncate(255),
                     OwnerScopeId = cacheMap.RootScopeId,
                     RootScopeId = cacheMap.RootScopeId,
                 };

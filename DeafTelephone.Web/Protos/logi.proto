@@ -112,6 +112,7 @@ message IncomplitedScopeReqest {
 	sint64 scopeOwnerId = 1;
 	string cacheKey = 2;
 	string message = 3;
+	string stacktrace = 4;
 }
 message IncomplitedScopeResponse {
 

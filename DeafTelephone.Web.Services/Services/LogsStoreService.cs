@@ -90,7 +90,7 @@
                 .Where(w => !w.RootScopeId.HasValue)
                 .Skip(from)
                 .Take(take)
-                .ToListAsync();
+                .ToListAsync(token);
 
             var rootScopeIds = scopes
                 .Select(s => s.Id)
@@ -100,7 +100,7 @@
                 .LogScopes
                 .AsNoTracking()
                 .Where(w => w.RootScopeId.HasValue && rootScopeIds.Contains(w.RootScopeId.Value))
-                .ToListAsync();
+                .ToListAsync(token);
 
             // add child scopes to list
             scopes.AddRange(childScopes);
@@ -109,7 +109,7 @@
                 .Logs
                 .AsNoTracking()
                 .Where(w => w.RootScopeId.HasValue && rootScopeIds.Contains(w.RootScopeId.Value))
-                .ToListAsync();
+                .ToListAsync(token);
 
             return (scopes, logMessages);
         }
