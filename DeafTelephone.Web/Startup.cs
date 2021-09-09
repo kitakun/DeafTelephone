@@ -1,22 +1,26 @@
 ﻿namespace DeafTelephone
 {
-    using System.Reflection;
+    using DeafTelephone.Web.Core.Services.Infrastructure;
+    using DeafTelephone.Web.Core.Services.Security;
+    using DeafTelephone.Web.Hub;
+    using DeafTelephone.Web.Infrastracture;
+    using DeafTelephone.Web.Jobs;
+    using DeafTelephone.Web.Services;
+    using DeafTelephone.Web.Services.Infrastructure;
 
     using MediatR;
 
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using Microsoft.Extensions.Configuration;
-
-    using DeafTelephone.Web.Infrastracture;
-    using DeafTelephone.Web.Hub;
-    using DeafTelephone.Web.Services.Infrastructure;
-    using DeafTelephone.Web.Services;
-    using DeafTelephone.Web.Jobs;
     using Microsoft.Extensions.Logging;
+
+    using System;
+    using System.IO;
+    using System.Reflection;
 
     public class Startup
     {
@@ -84,6 +88,17 @@
                         .Response
                         .WriteAsync("Communication with gRPC endpoints must be made through a gRPC client.");
                 });
+            });
+
+            // reset cache if file changed
+            var fileWatcher = app.ApplicationServices.GetRequiredService<IFileWatcher>();
+            fileWatcher.WatchForFile(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json"), () =>
+            {
+                using (var localScope = app.ApplicationServices.CreateScope())
+                {
+                    var whitelistService = localScope.ServiceProvider.GetRequiredService<IWhitelistService>();
+                    whitelistService.ClearCache();
+                }
             });
         }
     }

@@ -13,11 +13,11 @@
 
     internal class WhitelistService : IWhitelistService
     {
+        private static readonly object whitelist_key = new();
+
         private readonly LogDbContext _dbContext;
         private readonly IMemoryCache _cache;
         private readonly IConfiguration _appConfigs;
-
-        private static readonly object whitelist_key = new();
 
         public WhitelistService(
             LogDbContext dbContext,
@@ -51,6 +51,11 @@
             });
 
             return allowedIPs.Contains(address);
+        }
+
+        public void ClearCache()
+        {
+            _cache.Remove(whitelist_key);
         }
     }
 }
