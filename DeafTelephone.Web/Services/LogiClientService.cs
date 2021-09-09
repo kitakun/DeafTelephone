@@ -3,6 +3,7 @@
     using DeafTelephone.ForClient;
     using DeafTelephone.Web.Controllers.LogiClient.Fetch;
     using DeafTelephone.Web.Controllers.LogiClient.Hello;
+    using DeafTelephone.Web.Infrastracture.Attributes;
 
     using Grpc.Core;
 
@@ -27,6 +28,7 @@
         /// <summary>
         /// Get list of { Envs+Projects[] }
         /// </summary>
+        [AllowGuestsAccess("logiClient.LoggerClient")]
         public override async Task<HelloResponse> Hello(HelloRequest request, ServerCallContext context)
         {
             return await _mediator.Send(new HelloQuery(request));

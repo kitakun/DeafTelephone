@@ -1,6 +1,7 @@
 ﻿namespace DeafTelephone.Web.Infrastracture
 {
     using DeafTelephone.Web.Core.Services.Security;
+    using DeafTelephone.Web.Infrastracture.Attributes;
 
     using Grpc.Core;
     using Grpc.Core.Interceptors;
@@ -9,11 +10,28 @@
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
 
+    using System;
+    using System.Linq;
+    using System.Reflection;
     using System.Security;
     using System.Threading.Tasks;
 
     public class WhitelistInterceptor : Interceptor
     {
+        private static readonly (string className, string methodName)[] IgnoredMethodsToBeProtected;
+
+        static WhitelistInterceptor()
+        {
+            IgnoredMethodsToBeProtected = AppDomain
+                .CurrentDomain
+                .GetAssemblies()
+                .SelectMany(s => s.GetTypes())
+                .SelectMany(t => t.GetMethods())
+                .Where(m => m.GetCustomAttributes(typeof(AllowGuestsAccessAttribute), false).Length > 0)
+                .Select(s => (s.GetCustomAttribute<AllowGuestsAccessAttribute>().GrpcServiceNamespace, s.Name))
+                .ToArray();
+        }
+
         private readonly IWhitelistService _whitelistService;
         private readonly ILogger<WhitelistInterceptor> _logger;
         private readonly IConfiguration _appConfiguration;
@@ -28,10 +46,10 @@
             IConfiguration appConfiguration,
             IMemoryCache memoryCache)
         {
-            _whitelistService = whitelistService ?? throw new System.ArgumentNullException(nameof(whitelistService));
-            _logger = logger ?? throw new System.ArgumentNullException(nameof(logger));
-            _appConfiguration = appConfiguration ?? throw new System.ArgumentNullException(nameof(appConfiguration));
-            _memoryCache = memoryCache ?? throw new System.ArgumentNullException(nameof(memoryCache));
+            _whitelistService = whitelistService ?? throw new ArgumentNullException(nameof(whitelistService));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _appConfiguration = appConfiguration ?? throw new ArgumentNullException(nameof(appConfiguration));
+            _memoryCache = memoryCache ?? throw new ArgumentNullException(nameof(memoryCache));
         }
 
         public override async Task<TResponse> UnaryServerHandler<TRequest, TResponse>(
@@ -39,6 +57,14 @@
             ServerCallContext context,
             UnaryServerMethod<TRequest, TResponse> continuation)
         {
+            var splittedMethodInfo = context.Method.Split("/");
+            var method = splittedMethodInfo[^1];
+            var service = splittedMethodInfo[^2];
+            if (IgnoredMethodsToBeProtected.Any(a => a.methodName == method && a.className == service))
+            {
+                return await continuation(request, context);
+            }
+
             // validate access by API Key
             var apiAccess = context.RequestHeaders.GetValue(WHITELIST_API_KEY);
             if (!string.IsNullOrEmpty(apiAccess))
