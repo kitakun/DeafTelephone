@@ -29,6 +29,7 @@ message HelloRequest { }
 message HelloResponse {
 	repeated MapFieldStringEntry envs_to_projects = 1;
 	string databaseSize = 2;
+	string error = 3;
 }
 
 // ping-pong-request

@@ -49,6 +49,8 @@
                        .AllowCredentials();
             }));
 
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
             DeafServiceRegistration.ConfigureServices(services, Configuration);
 
             services.AddScoped<IScopedJob, DeleteOldLogsJob>();

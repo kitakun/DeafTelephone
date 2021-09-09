@@ -1,6 +1,7 @@
 ﻿namespace DeafTelephone.Web.Infrastracture
 {
     using DeafTelephone.Web.Core.Services.Security;
+    using DeafTelephone.Web.Extensions;
     using DeafTelephone.Web.Infrastracture.Attributes;
 
     using Grpc.Core;
@@ -82,18 +83,11 @@
 
             context.CancellationToken.ThrowIfCancellationRequested();
 
-            // validate access by WhiteList API list
             var httpContext = context.GetHttpContext();
-            var clientIP = httpContext.Connection.RemoteIpAddress;
-            var address = clientIP.ToString();
+            var ipAddress = httpContext.GetIPAddress();
 
-            const string ipv6Submask = "::ffff:";
-            if (address.Length > 6 && address.Substring(0, ipv6Submask.Length) == ipv6Submask)
-            {
-                address = address[ipv6Submask.Length..];
-            }
-
-            var isAllowed = await _whitelistService.IsAllowedAsync(address);
+            // validate access by WhiteList API list
+            var isAllowed = await _whitelistService.IsAllowedAsync(ipAddress);
             if (isAllowed)
             {
                 context.CancellationToken.ThrowIfCancellationRequested();
@@ -101,7 +95,7 @@
                 return await continuation(request, context);
             }
 
-            _logger.LogWarning($"Client with address={address} tried to connect, but we refused him");
+            _logger.LogWarning($"Client with address={ipAddress} tried to connect, but we refused him");
 
             throw new SecurityException("Not allowed");
         }
