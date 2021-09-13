@@ -45,6 +45,18 @@
                 rootScopePredicate = rootScopePredicate.And(w => selectedEnvsList.Contains(w.Environment.ToLower()));
             }
 
+            if(request.Request.FromDate is not null)
+            {
+                var fromDateUtc = request.Request.FromDate.ToDateTime();
+                rootScopePredicate = rootScopePredicate.And(w => w.CreatedAt >= fromDateUtc);
+            }
+
+            if (request.Request.ToDate is not null)
+            {
+                var toDateUtc = request.Request.ToDate.ToDateTime();
+                rootScopePredicate = rootScopePredicate.And(w => w.CreatedAt <= toDateUtc);
+            }
+
             var (scopes, logs) = await _logStoreService.Fetch(new LogFetchFilters(
                 request.Request.From,
                 request.Request.Take,
