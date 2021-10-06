@@ -1,5 +1,6 @@
 namespace DeafTelephone
 {
+    using DeafTelephone.Infrastructure.Logger.Serilog;
     using DeafTelephone.Web.Extensions;
 
     using Microsoft.AspNetCore.Builder;
@@ -11,15 +12,29 @@ namespace DeafTelephone
 
     public class Program
     {
-        public static void Main(string[] args) =>
-            CreateHostBuilder(args)
-                .Build()
-                .MigrateDbOnStartup()
-                .Run();
+        public static void Main(string[] args)
+        {
+            var logger = SerilogExtensions.CreateLogger();
+
+            try
+            {
+                logger.Information($"Launch application");
+                CreateHostBuilder(args)
+                    .Build()
+                    .MigrateDbOnStartup()
+                    .Run();
+            }
+            finally
+            {
+                logger.Information($"Shutdown application");
+                SerilogExtensions.Dispose();
+            }
+        }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .UseSystemd()
+                .ApplySerilogToTheProject()
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.ConfigureKestrel(options =>
@@ -41,7 +56,7 @@ namespace DeafTelephone
                                     o.UseHttps(certName, certPass);
                                 }
                             });
-                        
+
                         // enable signalR access
                         options.ListenAnyIP(
                             configs.GetValue<int>("DeafSetts:SignalrPort"), o =>

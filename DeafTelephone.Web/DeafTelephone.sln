@@ -1,15 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31105.61
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31710.8
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeafTelephone.Web", "DeafTelephone.Web.csproj", "{B2FE0BA0-A52D-4B45-A6AE-8EFA6538A7BB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeafTelephone.Web.Core", "..\DeafTelephone.Web.Core\DeafTelephone.Web.Core.csproj", "{08AC3816-6807-477B-A640-266D89A3F599}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeafTelephone.Web.Core", "..\DeafTelephone.Web.Core\DeafTelephone.Web.Core.csproj", "{08AC3816-6807-477B-A640-266D89A3F599}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeafTelephone.Web.Hub", "..\DeafTelephone.Web.Hub\DeafTelephone.Web.Hub.csproj", "{6DA045A5-DC93-4335-9655-C2B7F1649DB6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeafTelephone.Web.Hub", "..\DeafTelephone.Web.Hub\DeafTelephone.Web.Hub.csproj", "{6DA045A5-DC93-4335-9655-C2B7F1649DB6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeafTelephone.Web.Services", "..\DeafTelephone.Web.Services\DeafTelephone.Web.Services.csproj", "{4D159CFF-3B05-4863-8013-BD14C41089F0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeafTelephone.Web.Services", "..\DeafTelephone.Web.Services\DeafTelephone.Web.Services.csproj", "{4D159CFF-3B05-4863-8013-BD14C41089F0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeafTelephone.Infrastructure.Logger.Serilog", "..\DeafTelephone.Logger.Serilog\DeafTelephone.Infrastructure.Logger.Serilog.csproj", "{D2D77458-F4A4-4A67-93F5-BE7E0D4430CC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{4D159CFF-3B05-4863-8013-BD14C41089F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4D159CFF-3B05-4863-8013-BD14C41089F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4D159CFF-3B05-4863-8013-BD14C41089F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D2D77458-F4A4-4A67-93F5-BE7E0D4430CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2D77458-F4A4-4A67-93F5-BE7E0D4430CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2D77458-F4A4-4A67-93F5-BE7E0D4430CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2D77458-F4A4-4A67-93F5-BE7E0D4430CC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
