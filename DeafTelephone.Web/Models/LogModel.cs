@@ -2,6 +2,7 @@
 {
     using DeafTelephone.Server;
 
+    using System;
     using System.Collections.Generic;
 
     public class LogModel
@@ -15,6 +16,8 @@
         public long RootScopeId { get; set; }
         public long OwnerScopeId { get; set; }
 
+        public DateTime CreatedAt { get; set; }
+
         public LogModel(LogRequest logRequest)
         {
             Message = logRequest.Message;
@@ -23,6 +26,8 @@
 
             RootScopeId = logRequest.RootScopeId;
             OwnerScopeId = logRequest.OwnerScopeId;
+
+            CreatedAt = logRequest.CreatedAt.ToDateTime();
         }
 
         public LogModel(LogExceptionRequest exceptionLog)
@@ -35,6 +40,8 @@
 
             RootScopeId = exceptionLog.RootScopeId;
             OwnerScopeId = exceptionLog.OwnerScopeId;
+
+            CreatedAt = exceptionLog.CreatedAt.ToDateTime();
         }
     }
 }

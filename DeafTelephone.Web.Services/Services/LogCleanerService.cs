@@ -33,7 +33,7 @@
                 .Where(w => !w.RootScopeId.HasValue && w.CreatedAt < removeAllLogsOlderThan)
                 .ToListAsync();
 
-            _logger.LogInformation($"Loaded {oldScopes.Count} scopes that will be deleted");
+            _logger.LogInformation($"{nameof(LogCleanerService)}:Loaded {oldScopes.Count} scopes that will be deleted");
 
             if (oldScopes.Count > 0)
             {
@@ -44,14 +44,17 @@
                     .Where(w => w.RootScopeId.HasValue && oldScopeIds.Contains(w.RootScopeId.Value))
                     .ToListAsync();
 
-                _logger.LogInformation($"Loaded {allOldLogs.Count} logs that will be deleted");
+                _logger.LogInformation($"{nameof(LogCleanerService)}: Loaded {allOldLogs.Count} logs that will be deleted");
 
                 _dbContext.RemoveRange(allOldLogs);
+                _logger.LogInformation($"{nameof(LogCleanerService)}:Removed allOldLogs {allOldLogs.Count}");
+
                 _dbContext.RemoveRange(oldScopes);
+                _logger.LogInformation($"{nameof(LogCleanerService)}:Removed oldScopes {oldScopes.Count}");
 
                 await _dbContext.SaveChangesAsync();
 
-                _logger.LogInformation($"Done with success");
+                _logger.LogInformation($"{nameof(LogCleanerService)}:Done with success");
             }
         }
 

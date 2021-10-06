@@ -45,6 +45,7 @@ message LogRequest {
 	map<string,string> parameters = 3;
 	sint64 ownerScopeId = 4;
 	sint64 rootScopeId = 5;
+	google.protobuf.Timestamp createdAt = 6;
 }
 
 // Log response DTO
@@ -61,12 +62,14 @@ message LogExceptionRequest {
 	map<string,string> parameters = 4;
 	sint64 ownerScopeId = 5;
 	sint64 rootScopeId = 6;
+	google.protobuf.Timestamp createdAt = 7;
 }
 
 // BeginScope commands
 message BeginScopeRequest {
 	sint64 ownerScopeId = 1;
 	sint64 rootScopeId = 2;
+	google.protobuf.Timestamp createdAt = 3;
 }
 message BeginScopeResponse {
 	sint64 scopeId = 1;

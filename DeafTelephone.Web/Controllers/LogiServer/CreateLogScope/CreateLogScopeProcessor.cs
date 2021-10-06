@@ -31,9 +31,15 @@
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var newScope = await _logStoreService.CreateScope(request.Request.RootScopeId, request.Request.OwnerScopeId);
+            var newScope = await _logStoreService.CreateScope(
+                request.Request.RootScopeId,
+                request.Request.OwnerScopeId,
+                request.Request.CreatedAt.ToDateTime());
 
-            await _hub.Clients.Group(LogHub.ALL_LOGS_GROUP).SendAsync(NewScopeEvent.BROADCAST_NEW_SCOPE_MESSAGE, new NewScopeEvent(newScope), cancellationToken);
+            await _hub
+                .Clients
+                .Group(LogHub.ALL_LOGS_GROUP).
+                SendAsync(NewScopeEvent.BROADCAST_NEW_SCOPE_MESSAGE, new NewScopeEvent(newScope), cancellationToken);
 
             return newScope;
         }

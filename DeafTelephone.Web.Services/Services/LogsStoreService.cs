@@ -34,11 +34,11 @@
             return addedEntity.Entity;
         }
 
-        public async ValueTask<LogScopeRecord> CreateScope(long? rootScopeId = null, long? ownerScopeId = null)
+        public async ValueTask<LogScopeRecord> CreateScope(long? rootScopeId = null, long? ownerScopeId = null, DateTime? createdAt = null)
         {
             var newScope = new LogScopeRecord()
             {
-                CreatedAt = DateTime.Now,
+                CreatedAt = createdAt ?? DateTime.Now,
                 OwnerScopeId = ownerScopeId,
                 RootScopeId = rootScopeId,
             };
@@ -50,11 +50,11 @@
             return addedEntity.Entity;
         }
 
-        public async ValueTask<LogScopeRecord> CreateRootScope(string project, string environment)
+        public async ValueTask<LogScopeRecord> CreateRootScope(string project, string environment, DateTime? createdAt = null)
         {
             var newScope = new LogScopeRecord()
             {
-                CreatedAt = DateTime.Now,
+                CreatedAt = createdAt ?? DateTime.Now,
                 OwnerScopeId = null,
                 RootScopeId = null,
                 Project = project,

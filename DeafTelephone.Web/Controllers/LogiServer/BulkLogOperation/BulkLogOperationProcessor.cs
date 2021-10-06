@@ -88,35 +88,41 @@
 
                         _logger.LogInformation($"[{DateTime.Now:dd.MM.yyyy HH:mm}] {nameof(Server.BulkOperationType)} {nameof(Server.BulkOperationType.CreateInitialScope)} proj={targetProject} env={targetEnv} Cache.Key={buildedCacheKey}");
 
-                        var initialScope = await _logStoreService.CreateRootScope(targetProject, targetEnv);
+                        var initialScope = await _logStoreService.CreateRootScope(targetProject, targetEnv, messageToProceed.CreatedAt.ToDateTime());
 
                         if (!cacheMap.ScopeIdsMap.TryAdd(++scopeMapVal, initialScope.Id))
                             throw new Exception($"Failed at setting initial scope id for {buildedCacheKey}");
 
                         cacheMap.RootScopeId = initialScope.Id;
 
-                        await _hubAccess.Clients.Group(LogHub.ALL_LOGS_GROUP).SendAsync(
-                            NewScopeEvent.BROADCAST_NEW_SCOPE_MESSAGE, new NewScopeEvent(initialScope), cancellationToken);
+                        await _hubAccess
+                            .Clients
+                            .Group(LogHub.ALL_LOGS_GROUP)
+                            .SendAsync(NewScopeEvent.BROADCAST_NEW_SCOPE_MESSAGE, new NewScopeEvent(initialScope), cancellationToken);
 
                         break;
 
                     case Server.BulkOperationType.CreateScope:
                         var innerScope = await _logStoreService.CreateScope(
                             cacheMap.ScopeIdsMap[messageToProceed.RootScopeId],
-                            cacheMap.ScopeIdsMap[messageToProceed.ScopeOwnerId]);
+                            cacheMap.ScopeIdsMap[messageToProceed.ScopeOwnerId],
+                            messageToProceed.CreatedAt.ToDateTime());
 
                         if (!cacheMap.ScopeIdsMap.TryAdd(++scopeMapVal, innerScope.Id))
                             throw new Exception($"Failed at setting scope id ({scopeMapVal}) for {buildedCacheKey}");
 
-                        await _hubAccess.Clients.Group(LogHub.ALL_LOGS_GROUP).SendAsync(
-                            NewScopeEvent.BROADCAST_NEW_SCOPE_MESSAGE, new NewScopeEvent(innerScope), cancellationToken);
+                        await _hubAccess
+                            .Clients
+                            .Group(LogHub.ALL_LOGS_GROUP)
+                            .SendAsync(NewScopeEvent.BROADCAST_NEW_SCOPE_MESSAGE, new NewScopeEvent(innerScope), cancellationToken);
+
                         break;
 
                     case Server.BulkOperationType.LogMessage:
                     case Server.BulkOperationType.LogException:
                         var newRcord = new LogRecord()
                         {
-                            CreatedAt = DateTime.Now,
+                            CreatedAt = messageToProceed.CreatedAt.ToDateTime(),
                             LogLevel = (LogLevelEnum)(int)messageToProceed.Level,
                             Message = messageToProceed.LogMessage.Truncate(255),
                             StackTrace = messageToProceed.ExceptionStackTrace.Truncate(1024),
@@ -127,8 +133,10 @@
 
                         await _logStoreService.InsertLogRecordAsync(newRcord);
 
-                        await _hubAccess.Clients.Group(LogHub.ALL_LOGS_GROUP).SendAsync(
-                            NewLogInScopeEvent.BROADCAST_LOG_MESSAGE_NAME, new NewLogInScopeEvent(newRcord), cancellationToken);
+                        await _hubAccess
+                            .Clients
+                            .Group(LogHub.ALL_LOGS_GROUP)
+                            .SendAsync(NewLogInScopeEvent.BROADCAST_LOG_MESSAGE_NAME, new NewLogInScopeEvent(newRcord), cancellationToken);
 
                         break;
 

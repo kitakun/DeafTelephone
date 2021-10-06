@@ -31,7 +31,7 @@
         {
             var newRcord = new LogRecord()
             {
-                CreatedAt = DateTime.Now,
+                CreatedAt = request.Request.CreatedAt,
                 LogLevel = (LogLevelEnum)(int)request.Request.Level,
                 Message = request.Request.Message.Truncate(255),
                 StackTrace = request.Request.StackTrace.Truncate(1024),
@@ -42,8 +42,10 @@
 
             await _logStoreService.InsertLogRecordAsync(newRcord);
 
-            await _hubAccess.Clients.Group(LogHub.ALL_LOGS_GROUP).SendAsync(
-                            NewLogInScopeEvent.BROADCAST_LOG_MESSAGE_NAME, new NewLogInScopeEvent(newRcord), cancellationToken);
+            await _hubAccess
+                .Clients
+                .Group(LogHub.ALL_LOGS_GROUP)
+                .SendAsync(NewLogInScopeEvent.BROADCAST_LOG_MESSAGE_NAME, new NewLogInScopeEvent(newRcord), cancellationToken);
 
             return Unit.Value;
         }
