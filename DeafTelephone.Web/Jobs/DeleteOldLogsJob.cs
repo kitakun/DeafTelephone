@@ -1,11 +1,12 @@
 ﻿namespace DeafTelephone.Web.Jobs
 {
+    using System;
+    using System.Threading.Tasks;
+    using System.Threading;
+    
     using DeafTelephone.Web.Core.Services;
 
     using Microsoft.Extensions.Logging;
-
-    using System;
-    using System.Threading.Tasks;
 
     public class DeleteOldLogsJob : IScopedJob
     {
@@ -20,14 +21,14 @@
             _cleanerService = cleanerService ?? throw new ArgumentNullException(nameof(cleanerService));
         }
 
-        public async Task Launch()
+        public async Task LaunchAsync(CancellationToken token)
         {
             _logger.LogInformation($"Job {nameof(DeleteOldLogsJob)} step is started.");
             try
             {
-                _logger.LogInformation($"DB Size: {await _cleanerService.GetDBSize()}.");
+                _logger.LogInformation($"DB Size: {await _cleanerService.GetDBSizeAsync(token)}.");
 
-                await _cleanerService.ClearOldLogs();
+                await _cleanerService.ClearOldLogsAsync(token);
             }
             catch (Exception es)
             {

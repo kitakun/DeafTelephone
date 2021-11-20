@@ -1,5 +1,6 @@
 ﻿namespace DeafTelephone.Web.Core.Services
 {
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -10,11 +11,11 @@
         /// <summary>
         /// Get database size as string
         /// </summary>
-        Task<string> GetDBSize();
+        Task<string> GetDBSizeAsync(CancellationToken cancellationToken);
 
         /// <summary>
         /// Clear old logs
         /// </summary>
-        Task ClearOldLogs();
+        Task ClearOldLogsAsync(CancellationToken token);
     }
 }

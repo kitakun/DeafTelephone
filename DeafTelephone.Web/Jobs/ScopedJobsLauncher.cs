@@ -54,7 +54,7 @@
             var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IEnumerable<IScopedJob>>();
             foreach (var asyncService in scopedProcessingService)
             {
-                asyncService.Launch().GetAwaiter().GetResult();
+                asyncService.LaunchAsync(_cancellation).GetAwaiter().GetResult();
             }
         }
 

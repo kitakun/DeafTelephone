@@ -62,7 +62,7 @@
 
                 var result = new HelloResponse()
                 {
-                    DatabaseSize = await _logCleanService.GetDBSize()
+                    DatabaseSize = await _logCleanService.GetDBSizeAsync(cancellationToken)
                 };
 
                 result.EnvsToProjects.AddRange(map.Select(s =>
