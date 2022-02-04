@@ -20,6 +20,7 @@
         /// </summary>
         /// <param name="rootScopeId">root scope ID</param>
         /// <param name="ownerScopeId">scope owner ID</param>
+        /// <param name="createdAt">dateTime when this scope was created (could be null)</param>
         ValueTask<LogScopeRecord> CreateScope(long? rootScopeId = null, long? ownerScopeId = null, DateTime? createdAt = null);
 
         /// <summary>
@@ -27,6 +28,7 @@
         /// </summary>
         /// <param name="project">Project (could be application name)</param>
         /// <param name="environment">Environment (could be test/prod/etc)</param>
+        /// <param name="createdAt">dateTime when this scope was created (could be null)</param>
         ValueTask<LogScopeRecord> CreateRootScope(string project, string environment, DateTime? createdAt = null);
 
         /// <summary>

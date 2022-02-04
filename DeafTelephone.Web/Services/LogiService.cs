@@ -1,8 +1,8 @@
 namespace DeafTelephone
 {
-    using DeafTelephone.Controllers.LogiServer.CreateLogScope;
-    using DeafTelephone.Controllers.LogiServer.SendLog;
-    using DeafTelephone.Server;
+    using Controllers.LogiServer.CreateLogScope;
+    using Controllers.LogiServer.SendLog;
+    using Server;
     using DeafTelephone.Web.Controllers.LogiServer.BulkLogOperation;
     using DeafTelephone.Web.Controllers.LogiServer.IncomplitedScope;
 
@@ -32,8 +32,6 @@ namespace DeafTelephone
 
         public override Task<PongReply> Ping(PingRequest request, ServerCallContext context)
         {
-            // _logger.LogInformation($"Pong");
-
             return Task.FromResult(new PongReply());
         }
 
@@ -43,7 +41,7 @@ namespace DeafTelephone
         {
             try
             {
-                _logger.LogInformation($"Recieved msg={request.Message} for scope={request.OwnerScopeId}");
+                _logger.LogInformation($"Received msg={request.Message} for scope={request.OwnerScopeId}");
 
                 await _mediator.Send(new SendLogQuery(new Models.LogModel(request)));
 
@@ -54,7 +52,7 @@ namespace DeafTelephone
             }
             catch (Exception es)
             {
-                _logger.LogError($"Recieved msg={request.Message} for scope={request.OwnerScopeId} but got error={es.Message} stack={Environment.NewLine}{es.StackTrace}");
+                _logger.LogError($"Received msg={request.Message} for scope={request.OwnerScopeId} but got error={es.Message} stack={Environment.NewLine}{es.StackTrace}");
 
                 return new LogResponse
                 {
@@ -68,7 +66,7 @@ namespace DeafTelephone
         {
             try
             {
-                _logger.LogInformation($"Recieved msg={request.Message} for scope={request.OwnerScopeId}");
+                _logger.LogInformation($"Received msg={request.Message} for scope={request.OwnerScopeId}");
 
                 await _mediator.Send(new SendLogQuery(new Models.LogModel(request)));
 
@@ -79,7 +77,7 @@ namespace DeafTelephone
             }
             catch (Exception es)
             {
-                _logger.LogError($"Recieved msg={request.Message} for scope={request.OwnerScopeId} but got error={es.Message} stack={Environment.NewLine}{es.StackTrace}");
+                _logger.LogError($"Received msg={request.Message} for scope={request.OwnerScopeId} but got error={es.Message} stack={Environment.NewLine}{es.StackTrace}");
 
                 return new LogResponse
                 {
@@ -95,7 +93,7 @@ namespace DeafTelephone
         {
             try
             {
-                _logger.LogInformation($"Recieved {nameof(BeginScope)} for scope={request.OwnerScopeId}");
+                _logger.LogInformation($"Received {nameof(BeginScope)} for scope={request.OwnerScopeId}");
 
                 var createdScope = await _mediator.Send(new CreateLogScopeQuery(request));
 
@@ -106,7 +104,7 @@ namespace DeafTelephone
             }
             catch (Exception es)
             {
-                _logger.LogError($"Recieved {nameof(BeginScope)} for scope={request.OwnerScopeId} but got error={es.Message} stack={Environment.NewLine}{es.StackTrace}");
+                _logger.LogError($"Received {nameof(BeginScope)} for scope={request.OwnerScopeId} but got error={es.Message} stack={Environment.NewLine}{es.StackTrace}");
 
                 return new BeginScopeResponse
                 {
@@ -121,7 +119,7 @@ namespace DeafTelephone
         {
             try
             {
-                _logger.LogInformation($"Recieved {nameof(Bulk)} with messages count={request.Messages.Count}");
+                _logger.LogInformation($"Received {nameof(Bulk)} with messages count={request.Messages.Count}");
 
                 var createdScope = await _mediator.Send(new BulkLogOperationQuery(request));
 
@@ -133,7 +131,7 @@ namespace DeafTelephone
             }
             catch (Exception es)
             {
-                _logger.LogError($"Recieved {nameof(Bulk)} with messages count={request.Messages.Count} but got error={es.Message} stack={Environment.NewLine}{es.StackTrace}");
+                _logger.LogError($"Received {nameof(Bulk)} with messages count={request.Messages.Count} but got error={es.Message} stack={Environment.NewLine}{es.StackTrace}");
 
                 return new BulkRespons
                 {
@@ -149,13 +147,19 @@ namespace DeafTelephone
         {
             try
             {
-                _logger.LogInformation($"Recieved {nameof(IncomplitedRequest)} for Key={request.CacheKey}");
+                _logger.LogInformation($"Received {nameof(IncomplitedRequest)} for Key={request.CacheKey}");
 
                 await _mediator.Send(new IncomplitedScopeQuery(request.CacheKey, request.Message, request.Stacktrace));
             }
             catch (Exception es)
             {
-                _logger.LogError($"Recieved {nameof(IncomplitedScopeResponse)} for Key={request.CacheKey} but got error={es.Message} stack={Environment.NewLine}{es.StackTrace}");
+                _logger.LogError(
+                "Received {IncomplitedScopeResponse} for Key={CacheKey} but got error={Message} stack={NewLine}{StackTrace}",
+                 nameof(IncomplitedScopeResponse),
+                    request.CacheKey,
+                    es.Message,
+                    Environment.NewLine,
+                    es.StackTrace);
             }
 
             return new IncomplitedScopeResponse();

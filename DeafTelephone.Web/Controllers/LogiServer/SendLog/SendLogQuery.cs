@@ -2,7 +2,7 @@
 {
     using System;
 
-    using DeafTelephone.Models;
+    using Models;
 
     using MediatR;
 

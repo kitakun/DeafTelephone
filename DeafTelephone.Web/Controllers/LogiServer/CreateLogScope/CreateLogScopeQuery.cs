@@ -1,7 +1,7 @@
 ﻿namespace DeafTelephone.Controllers.LogiServer.CreateLogScope
 {
-    using DeafTelephone.Server;
-    using DeafTelephone.Web.Core.Domain;
+    using Server;
+    using Web.Core.Domain;
 
     using MediatR;
 

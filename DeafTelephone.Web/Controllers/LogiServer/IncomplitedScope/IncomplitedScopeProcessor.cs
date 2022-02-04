@@ -1,8 +1,8 @@
 ﻿namespace DeafTelephone.Web.Controllers.LogiServer.IncomplitedScope
 {
-    using DeafTelephone.Hubs;
-    using DeafTelephone.Web.Controllers.LogiServer.BulkLogOperation;
-    using DeafTelephone.Web.Core.Domain;
+    using Hubs;
+    using BulkLogOperation;
+    using Core.Domain;
     using DeafTelephone.Web.Core.Extensions;
     using DeafTelephone.Web.Core.Services;
     using DeafTelephone.Web.Hub.Models;
@@ -17,7 +17,7 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    using static DeafTelephone.Web.Controllers.LogiServer.BulkLogOperation.BulkLogOperationProcessor;
+    using static BulkLogOperation.BulkLogOperationProcessor;
 
     public class IncomplitedScopeProcessor : IRequestHandler<IncomplitedScopeQuery>
     {
@@ -73,7 +73,7 @@
             }
             else
             {
-                _logger.LogWarning($"Trying to incomplite log for cacheKey={request.CacheKey}, but there is no map for it");
+                _logger.LogWarning($"Trying to incomplete log for cacheKey={request.CacheKey}, but there is no map for it");
             }
 
             return Unit.Value;

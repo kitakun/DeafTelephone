@@ -1,7 +1,7 @@
 ﻿namespace DeafTelephone.Web.Controllers.LogiServer.BulkLogOperation
 {
-    using DeafTelephone.Hubs;
-    using DeafTelephone.Web.Core.Domain;
+    using Hubs;
+    using Core.Domain;
     using DeafTelephone.Web.Core.Extensions;
     using DeafTelephone.Web.Core.Services;
     using DeafTelephone.Web.Hub.Models;
@@ -43,15 +43,15 @@
             cancellationToken.ThrowIfCancellationRequested();
 
             MapCacheItem cacheMap;
-            string buildedCacheKey;
+            string builtCacheKey;
 
             if (!string.IsNullOrEmpty(request.Request.CacheKey))
             {
-                buildedCacheKey = request.Request.CacheKey;
+                builtCacheKey = request.Request.CacheKey;
 
                 // we should have cache for this request
-                if (!_cache.TryGetValue<MapCacheItem>(buildedCacheKey, out var gettedCacheMap))
-                    throw new Exception($"Can't find cacheKey={buildedCacheKey} in memory cache");
+                if (!_cache.TryGetValue<MapCacheItem>(builtCacheKey, out var gettedCacheMap))
+                    throw new Exception($"Can't find cacheKey={builtCacheKey} in memory cache");
 
                 cacheMap = gettedCacheMap;
             }
@@ -59,8 +59,8 @@
             {
                 // create new cache map
                 cacheMap = new MapCacheItem();
-                buildedCacheKey = string.Format(CACHE_LOCAL_SCOPE_MAP, cacheMap.CacheKey);
-                using (var cacheEntry = _cache.CreateEntry(buildedCacheKey))
+                builtCacheKey = string.Format(CACHE_LOCAL_SCOPE_MAP, cacheMap.CacheKey);
+                using (var cacheEntry = _cache.CreateEntry(builtCacheKey))
                 {
                     cacheEntry.SetValue(cacheMap);
                     cacheEntry
@@ -69,7 +69,7 @@
                     cacheEntry.RegisterPostEvictionCallback(OnCacheEntryChanges);
                 }
 
-                _logger.LogInformation($"[{DateTime.Now:dd.MM.yyyy HH:mm}] Start new BuldOperation Messages.Count={request.Request.Messages.Count} SetCache.Key={buildedCacheKey}");
+                _logger.LogInformation($"[{DateTime.Now:dd.MM.yyyy HH:mm}] Start new BuldOperation Messages.Count={request.Request.Messages.Count} SetCache.Key={builtCacheKey}");
             }
 
             var scopeMapVal = cacheMap.CalculatedIds;
@@ -86,12 +86,12 @@
                         var targetProject = request.Request.Parameters[nameof(LogScopeRecord.Project)];
                         var targetEnv = request.Request.Parameters[nameof(LogScopeRecord.Environment)];
 
-                        _logger.LogInformation($"[{DateTime.Now:dd.MM.yyyy HH:mm}] {nameof(Server.BulkOperationType)} {nameof(Server.BulkOperationType.CreateInitialScope)} proj={targetProject} env={targetEnv} Cache.Key={buildedCacheKey}");
+                        _logger.LogInformation($"[{DateTime.Now:dd.MM.yyyy HH:mm}] {nameof(Server.BulkOperationType)} {nameof(Server.BulkOperationType.CreateInitialScope)} proj={targetProject} env={targetEnv} Cache.Key={builtCacheKey}");
 
                         var initialScope = await _logStoreService.CreateRootScope(targetProject, targetEnv, messageToProceed.CreatedAt.ToDateTime());
 
                         if (!cacheMap.ScopeIdsMap.TryAdd(++scopeMapVal, initialScope.Id))
-                            throw new Exception($"Failed at setting initial scope id for {buildedCacheKey}");
+                            throw new Exception($"Failed at setting initial scope id for {builtCacheKey}");
 
                         cacheMap.RootScopeId = initialScope.Id;
 
@@ -109,7 +109,7 @@
                             messageToProceed.CreatedAt.ToDateTime());
 
                         if (!cacheMap.ScopeIdsMap.TryAdd(++scopeMapVal, innerScope.Id))
-                            throw new Exception($"Failed at setting scope id ({scopeMapVal}) for {buildedCacheKey}");
+                            throw new Exception($"Failed at setting scope id ({scopeMapVal}) for {builtCacheKey}");
 
                         await _hubAccess
                             .Clients
@@ -150,21 +150,19 @@
 
             if (needToFinalize)
             {
-                _cache.Remove(buildedCacheKey);
-                _logger.LogInformation($"[{DateTime.Now:dd.MM.yyyy HH:mm}] {nameof(Server.BulkOperationType)} {nameof(Server.BulkOperationType.FinalRequest)} Cache.Key={buildedCacheKey}");
+                _cache.Remove(builtCacheKey);
+                _logger.LogInformation($"[{DateTime.Now:dd.MM.yyyy HH:mm}] {nameof(Server.BulkOperationType)} {nameof(Server.BulkOperationType.FinalRequest)} Cache.Key={builtCacheKey}");
             }
 
             return new BulkLogOperationResult()
             {
-                CacheKey = buildedCacheKey
+                CacheKey = builtCacheKey
             };
         }
 
         private void OnCacheEntryChanges(object key, object value, EvictionReason reason, object state)
         {
-            if(reason == EvictionReason.Expired
-                || reason == EvictionReason.Removed
-                || reason == EvictionReason.TokenExpired)
+            if(reason is EvictionReason.Expired or EvictionReason.Removed or EvictionReason.TokenExpired)
             {
                 _logger.LogInformation($"{nameof(Server.BulkOperationType)} {nameof(OnCacheEntryChanges)} key={key} reason={reason}");
             }

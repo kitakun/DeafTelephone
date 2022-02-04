@@ -1,8 +1,8 @@
 ﻿namespace DeafTelephone.Web.Infrastracture
 {
     using DeafTelephone.Web.Core.Services.Security;
-    using DeafTelephone.Web.Extensions;
-    using DeafTelephone.Web.Infrastracture.Attributes;
+    using Extensions;
+    using Attributes;
 
     using Grpc.Core;
     using Grpc.Core.Interceptors;
@@ -29,7 +29,7 @@
                 .SelectMany(s => s.GetTypes())
                 .SelectMany(t => t.GetMethods())
                 .Where(m => m.GetCustomAttributes(typeof(AllowGuestsAccessAttribute), false).Length > 0)
-                .Select(s => (s.GetCustomAttribute<AllowGuestsAccessAttribute>().GrpcServiceNamespace, s.Name))
+                .Select(s => (s.GetCustomAttribute<AllowGuestsAccessAttribute>()?.GrpcServiceNamespace, s.Name))
                 .ToArray();
         }
 
@@ -72,6 +72,7 @@
             {
                 var keyFromConfig = _memoryCache.GetOrCreate(mem_api_key, (entry) =>
                 {
+                    // ReSharper disable once ConvertToLambdaExpression
                     return _appConfiguration["WhitelistKey"];
                 });
 
@@ -97,7 +98,7 @@
 
             _logger.LogWarning($"Client with address={ipAddress} tried to connect, but we refused him");
 
-            throw new SecurityException("Not allowed");
+            throw new SecurityException($"Not allowed {ipAddress}");
         }
     }
 }

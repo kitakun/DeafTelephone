@@ -3,14 +3,13 @@ namespace DeafTelephone
     using DeafTelephone.Infrastructure.Logger.Serilog;
     using DeafTelephone.Web.Extensions;
 
-    using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Server.Kestrel.Core;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
 
-    public class Program
+    public static class Program
     {
         public static void Main(string[] args)
         {
@@ -31,7 +30,7 @@ namespace DeafTelephone
             }
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
+        private static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .UseSystemd()
                 .ApplySerilogToTheProject()
@@ -48,13 +47,14 @@ namespace DeafTelephone
                             configs.GetValue<int>("DeafSetts:GrpcPort"), o =>
                             {
                                 o.Protocols = HttpProtocols.Http1AndHttp2;
-                                if (applyCert)
-                                {
-                                    var certName = configs.GetSection("Certificates:Default:Path").Value;
-                                    var certPass = configs.GetSection("Certificates:Default:Password").Value;
 
-                                    o.UseHttps(certName, certPass);
-                                }
+                                if (!applyCert)
+                                    return;
+
+                                var certName = configs.GetSection("Certificates:Default:Path").Value;
+                                var certPass = configs.GetSection("Certificates:Default:Password").Value;
+
+                                o.UseHttps(certName, certPass);
                             });
 
                         // enable signalR access
@@ -62,13 +62,14 @@ namespace DeafTelephone
                             configs.GetValue<int>("DeafSetts:SignalrPort"), o =>
                             {
                                 o.Protocols = HttpProtocols.Http1AndHttp2;
-                                if (applyCert)
-                                {
-                                    var certName = configs.GetSection("Certificates:Default:Path").Value;
-                                    var certPass = configs.GetSection("Certificates:Default:Password").Value;
 
-                                    o.UseHttps(certName, certPass);
-                                }
+                                if (!applyCert)
+                                    return;
+
+                                var certName = configs.GetSection("Certificates:Default:Path").Value;
+                                var certPass = configs.GetSection("Certificates:Default:Password").Value;
+
+                                o.UseHttps(certName, certPass);
                             });
                     });
 

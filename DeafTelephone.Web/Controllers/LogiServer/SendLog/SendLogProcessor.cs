@@ -8,10 +8,10 @@
 
     using Microsoft.AspNetCore.SignalR;
 
-    using DeafTelephone.Hubs;
-    using DeafTelephone.Web.Core.Domain;
-    using DeafTelephone.Web.Core.Services;
-    using DeafTelephone.Web.Core.Extensions;
+    using Hubs;
+    using Web.Core.Domain;
+    using Web.Core.Services;
+    using Web.Core.Extensions;
     using DeafTelephone.Web.Hub.Models;
 
     public class SendLogProcessor : IRequestHandler<SendLogQuery>
@@ -29,7 +29,7 @@
 
         public async Task<Unit> Handle(SendLogQuery request, CancellationToken cancellationToken)
         {
-            var newRcord = new LogRecord()
+            var newRecord = new LogRecord()
             {
                 CreatedAt = request.Request.CreatedAt,
                 LogLevel = (LogLevelEnum)(int)request.Request.Level,
@@ -40,12 +40,12 @@
                 RootScopeId = request.Request.RootScopeId,
             };
 
-            await _logStoreService.InsertLogRecordAsync(newRcord);
+            await _logStoreService.InsertLogRecordAsync(newRecord);
 
             await _hubAccess
                 .Clients
                 .Group(LogHub.ALL_LOGS_GROUP)
-                .SendAsync(NewLogInScopeEvent.BROADCAST_LOG_MESSAGE_NAME, new NewLogInScopeEvent(newRcord), cancellationToken);
+                .SendAsync(NewLogInScopeEvent.BROADCAST_LOG_MESSAGE_NAME, new NewLogInScopeEvent(newRecord), cancellationToken);
 
             return Unit.Value;
         }

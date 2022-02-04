@@ -1,7 +1,7 @@
 ﻿namespace DeafTelephone.Web.Controllers.LogiClient.Fetch
 {
-    using DeafTelephone.ForClient;
-    using DeafTelephone.Web.Core.Domain;
+    using ForClient;
+    using Core.Domain;
     using DeafTelephone.Web.Core.Models;
     using DeafTelephone.Web.Core.Services;
 

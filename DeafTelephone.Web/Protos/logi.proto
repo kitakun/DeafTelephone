@@ -32,10 +32,10 @@ message PongReply { }
 // log level enum type
 enum LogLevel {
 	Error = 0;
-    Warning = 1;
-    Information = 2;
-    Debug = 3;
-    Verbose = 4;
+	Warning = 1;
+	Information = 2;
+	Debug = 3;
+	Verbose = 4;
 }
 
 // Log request DTO
@@ -79,9 +79,9 @@ message BeginScopeResponse {
 // bulk stuff
 enum BulkOperationType {
 	CreateInitialScope = 0;
-    CreateScope = 1;
-    LogMessage = 2;
-    LogException = 3;
+	CreateScope = 1;
+	LogMessage = 2;
+	LogException = 3;
 	FinalRequest = 4;
 }
 
@@ -97,6 +97,7 @@ message BulkMessage {
 
 	google.protobuf.Timestamp createdAt = 7;
 	BulkOperationType operationType = 8;
+	bool nonSaveableMessage = 9;
 }
 
 message BulkRequest {

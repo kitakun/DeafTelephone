@@ -7,7 +7,7 @@
             const string truncate_symbols = "...";
             return value.Length <= maxChars
                 ? value
-                : $"{value.Substring(0, maxChars - truncate_symbols.Length)}{truncate_symbols}";
+                : $"{value[..(maxChars - truncate_symbols.Length)]}{truncate_symbols}";
         }
     }
 }

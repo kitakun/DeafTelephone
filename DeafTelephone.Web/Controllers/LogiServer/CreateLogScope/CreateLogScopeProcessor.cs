@@ -1,8 +1,8 @@
 ﻿namespace DeafTelephone.Web.Controllers.LogiServer.CreateLogScope
 {
     using DeafTelephone.Controllers.LogiServer.CreateLogScope;
-    using DeafTelephone.Hubs;
-    using DeafTelephone.Web.Core.Domain;
+    using Hubs;
+    using Core.Domain;
     using DeafTelephone.Web.Core.Services;
     using DeafTelephone.Web.Hub.Models;
 

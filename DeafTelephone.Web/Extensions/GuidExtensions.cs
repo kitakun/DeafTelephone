@@ -8,11 +8,9 @@
     {
         public static Guid ToGuid(this ByteString byteString)
         {
-            if (byteString.IsEmpty)
-            {
-                return Guid.Empty;
-            }
-            return new Guid(byteString.ToByteArray());
+            return byteString.IsEmpty
+                ? Guid.Empty
+                : new Guid(byteString.ToByteArray());
         }
     }
 }

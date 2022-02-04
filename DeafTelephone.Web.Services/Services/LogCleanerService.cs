@@ -10,7 +10,8 @@
     using Microsoft.Extensions.Logging;
     
     using DeafTelephone.Web.Core.Services;
-    using DeafTelephone.Web.Services.Persistence;
+    using Persistence;
+    using Core.Extensions;
 
     internal class LogCleanerService : ILogCleanerService
     {
@@ -27,14 +28,24 @@
 
         public async Task ClearOldLogsAsync(CancellationToken token)
         {
-            var currentDate = DateTime.UtcNow;
-            var removeAllLogsOlderThan = currentDate.AddMonths(-1);
+            var removeAllLogsOlderThan = DateTime.UtcNow.AddMonths(-1);
+
+            await DeleteOldLogsWithScopesAsync(removeAllLogsOlderThan, token);
+            
+            if (token.IsCancellationRequested)
+                return;
+
+            await DeleteEmptyScopesAsync(removeAllLogsOlderThan, token);
+        }
+
+        private async ValueTask DeleteOldLogsWithScopesAsync(DateTime removeAllLogsOlderThan, CancellationToken token)
+        {
             var oldScopes = await _dbContext
                 .LogScopes
                 .Where(w => !w.RootScopeId.HasValue && w.CreatedAt < removeAllLogsOlderThan)
                 .ToListAsync(token);
 
-            _logger.LogInformation($"{nameof(LogCleanerService)}:Loaded {oldScopes.Count} scopes that will be deleted");
+            _logger.LogInformation($"{nameof(LogCleanerService)} m:{nameof(DeleteOldLogsWithScopesAsync)}:Loaded {oldScopes.Count} scopes that will be deleted");
 
             if (oldScopes.Count > 0)
             {
@@ -47,26 +58,48 @@
                     .Where(w => w.RootScopeId.HasValue && oldScopeIds.Contains(w.RootScopeId.Value));
 
                 var allLogsCount = await allOldLogs.CountAsync(token);
-                _logger.LogInformation($"{nameof(LogCleanerService)}: Loaded {allLogsCount} logs that will be deleted");
+                _logger.LogInformation($"{nameof(DeleteOldLogsWithScopesAsync)}: Loaded {allLogsCount} logs that will be deleted");
 
                 if (allLogsCount > 0)
                 {
-                    var allLogsChunk = (await allOldLogs.ToListAsync(token)).Chunk(chunkSize);
+                    var allLogsChunk = (await allOldLogs.ToListAsync(token)).ChunkBy(chunkSize);
                     foreach (var chunkOfOldLogs in allLogsChunk)
                     {
                         _dbContext.RemoveRange(chunkOfOldLogs);
-                        _logger.LogInformation($"{nameof(LogCleanerService)}:Removed allOldLogs {chunkOfOldLogs.Length}");
+                        _logger.LogInformation($"{nameof(DeleteOldLogsWithScopesAsync)}:Removed allOldLogs {chunkOfOldLogs.Count}");
 
                         await _dbContext.SaveChangesAsync(token);
                     }
                 }
 
                 _dbContext.RemoveRange(oldScopes);
-                _logger.LogInformation($"{nameof(LogCleanerService)}:Removed oldScopes {oldScopes.Count}");
+                _logger.LogInformation($"{nameof(DeleteOldLogsWithScopesAsync)}:Removed oldScopes {oldScopes.Count}");
 
                 await _dbContext.SaveChangesAsync(token);
 
-                _logger.LogInformation($"{nameof(LogCleanerService)}:Done with success");
+                _logger.LogInformation($"{nameof(DeleteOldLogsWithScopesAsync)}:Done with success");
+            }
+        }
+
+        private async ValueTask DeleteEmptyScopesAsync(DateTime removeAllLogsOlderThan, CancellationToken token)
+        {
+            var oldEmptyScopes = await _dbContext
+                .LogScopes
+                .Where(w => w.RootScopeId.HasValue
+                        && w.CreatedAt < removeAllLogsOlderThan
+                        && w.InnerLogsCollection.Count == 0)
+                .ToListAsync(token);
+
+            _logger.LogInformation($"{nameof(LogCleanerService)} m:{nameof(DeleteEmptyScopesAsync)}:Loaded {oldEmptyScopes.Count} empty scopes that will be deleted");
+
+            if(oldEmptyScopes.Count > 0)
+            {
+                _dbContext.RemoveRange(oldEmptyScopes);
+                _logger.LogInformation($"{nameof(DeleteEmptyScopesAsync)}:Removed old empty Scopes {oldEmptyScopes.Count}");
+
+                await _dbContext.SaveChangesAsync(token);
+
+                _logger.LogInformation($"{nameof(DeleteEmptyScopesAsync)}:Done with success");
             }
         }
 

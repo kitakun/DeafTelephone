@@ -61,6 +61,7 @@ message LogMessage {
 	LogLevel level = 6;
 	google.protobuf.Timestamp createdAt = 7;
 	sint64 logId = 8;
+	bool nonSaveableMessage = 9;
 }
 
 // Log request DTO

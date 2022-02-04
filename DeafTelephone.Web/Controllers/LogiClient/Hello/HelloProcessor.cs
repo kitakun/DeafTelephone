@@ -1,10 +1,10 @@
 ﻿namespace DeafTelephone.Web.Controllers.LogiClient.Hello
 {
-    using DeafTelephone.ForClient;
+    using ForClient;
     using DeafTelephone.Web.Core.Services;
     using DeafTelephone.Web.Core.Services.Security;
-    using DeafTelephone.Web.Extensions;
-    using DeafTelephone.Web.Services.Persistence;
+    using Extensions;
+    using Services.Persistence;
 
     using MediatR;
 

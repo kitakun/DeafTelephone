@@ -1,47 +1,46 @@
-﻿namespace DeafTelephone.Models
+﻿namespace DeafTelephone.Models;
+
+using Server;
+
+using System;
+using System.Collections.Generic;
+
+public class LogModel
 {
-    using DeafTelephone.Server;
+    public string Message { get; set; }
+    public string ErrorTitle { get; set; }
+    public string StackTrace { get; set; }
+    public LogLevel Level { get; set; }
+    public IDictionary<string, string> Parameters { get; set; }
 
-    using System;
-    using System.Collections.Generic;
+    public long RootScopeId { get; set; }
+    public long OwnerScopeId { get; set; }
 
-    public class LogModel
+    public DateTime CreatedAt { get; set; }
+
+    public LogModel(LogRequest logRequest)
     {
-        public string Message { get; set; }
-        public string ErrorTitle { get; set; }
-        public string StackTrace { get; set; }
-        public LogLevel Level { get; set; }
-        public IDictionary<string, string> Parameters { get; set; }
+        Message = logRequest.Message;
+        Level = logRequest.Level;
+        Parameters = logRequest.Parameters;
 
-        public long RootScopeId { get; set; }
-        public long OwnerScopeId { get; set; }
+        RootScopeId = logRequest.RootScopeId;
+        OwnerScopeId = logRequest.OwnerScopeId;
 
-        public DateTime CreatedAt { get; set; }
+        CreatedAt = logRequest.CreatedAt.ToDateTime();
+    }
 
-        public LogModel(LogRequest logRequest)
-        {
-            Message = logRequest.Message;
-            Level = logRequest.Level;
-            Parameters = logRequest.Parameters;
+    public LogModel(LogExceptionRequest exceptionLog)
+    {
+        Message = exceptionLog.Message;
+        ErrorTitle = exceptionLog.ExceptionTitle;
+        StackTrace = exceptionLog.StackTrace;
+        Level = LogLevel.Error;
+        Parameters = exceptionLog.Parameters;
 
-            RootScopeId = logRequest.RootScopeId;
-            OwnerScopeId = logRequest.OwnerScopeId;
+        RootScopeId = exceptionLog.RootScopeId;
+        OwnerScopeId = exceptionLog.OwnerScopeId;
 
-            CreatedAt = logRequest.CreatedAt.ToDateTime();
-        }
-
-        public LogModel(LogExceptionRequest exceptionLog)
-        {
-            Message = exceptionLog.Message;
-            ErrorTitle = exceptionLog.ExceptionTitle;
-            StackTrace = exceptionLog.StackTrace;
-            Level = LogLevel.Error;
-            Parameters = exceptionLog.Parameters;
-
-            RootScopeId = exceptionLog.RootScopeId;
-            OwnerScopeId = exceptionLog.OwnerScopeId;
-
-            CreatedAt = exceptionLog.CreatedAt.ToDateTime();
-        }
+        CreatedAt = exceptionLog.CreatedAt.ToDateTime();
     }
 }

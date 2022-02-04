@@ -24,7 +24,7 @@
 
     public class Startup
     {
-        public IConfiguration Configuration { get; init; }
+        private IConfiguration Configuration { get; }
 
         public Startup(IConfiguration configuration)
         {
@@ -96,11 +96,9 @@
             var fileWatcher = app.ApplicationServices.GetRequiredService<IFileWatcher>();
             fileWatcher.WatchForFile(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json"), () =>
             {
-                using (var localScope = app.ApplicationServices.CreateScope())
-                {
-                    var whitelistService = localScope.ServiceProvider.GetRequiredService<IWhitelistService>();
-                    whitelistService.ClearCache();
-                }
+                using var localScope = app.ApplicationServices.CreateScope();
+                var whitelistService = localScope.ServiceProvider.GetRequiredService<IWhitelistService>();
+                whitelistService.ClearCache();
             });
         }
     }

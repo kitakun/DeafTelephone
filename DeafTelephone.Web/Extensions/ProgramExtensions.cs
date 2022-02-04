@@ -9,13 +9,12 @@
     {
         public static IHost MigrateDbOnStartup(this IHost buildedApp)
         {
-            using (var scope = buildedApp.Services.CreateScope())
-            {
-                var services = scope.ServiceProvider;
+            using var scope = buildedApp.Services.CreateScope();
 
-                var context = services.GetRequiredService<IProgramService>();
-                context.ApplyMigration();
-            }
+            var services = scope.ServiceProvider;
+
+            var context = services.GetRequiredService<IProgramService>();
+            context.ApplyMigration();
 
             return buildedApp;
         }

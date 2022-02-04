@@ -1,9 +1,9 @@
 ﻿namespace DeafTelephone.Web.Services
 {
-    using DeafTelephone.ForClient;
-    using DeafTelephone.Web.Controllers.LogiClient.Fetch;
-    using DeafTelephone.Web.Controllers.LogiClient.Hello;
-    using DeafTelephone.Web.Infrastracture.Attributes;
+    using ForClient;
+    using Controllers.LogiClient.Fetch;
+    using Controllers.LogiClient.Hello;
+    using Infrastracture.Attributes;
 
     using Grpc.Core;
 
